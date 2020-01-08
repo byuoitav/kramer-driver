@@ -45,41 +45,31 @@ type CommandInfo struct {
 	ReadWelcome     bool
 }
 
-func hardwareCommand(commandType, param, address string, readWelcome bool) (string, error) {
-	var command string
+func (vs *VideoSwitcher) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
+	var cmd []byte
 
 	if len(param) > 0 {
 		num, _ := strconv.Atoi(param)
-		command = fmt.Sprintf("#%s? %d", commandType, num)
+		cmd = []byte(fmt.Sprintf("#%s? %d", commandType, num))
 	} else {
-		command = fmt.Sprintf("#%s?", commandType)
+		cmd = []byte(fmt.Sprintf("#%s?", commandType))
 	}
 
-	respChan := make(chan Response)
-
-	c := CommandInfo{respChan, address, command, readWelcome}
-
-	StartChannel <- c
-
-	re := <-respChan
-
-	resp := re.Response
-	err := re.Err
+	resp, err := vs.SendCommand(ctx, cmd)
 
 	if err != nil {
-		return resp, err
+		return "", fmt.Errorf("unable to send command: %w", err)
 	}
+	resps := string(resp)
+	resps = strings.Split(resps, fmt.Sprintf("%s", commandType))[1]
+	resps = strings.Trim(resps, "\r\n")
+	resps = strings.TrimSpace(resps)
 
-	resp = strings.Split(resp, fmt.Sprintf("%s", commandType))[1]
-	resp = strings.Trim(resp, "\r\n")
-	resp = strings.TrimSpace(resp)
-
-	return resp, nil
+	return resps, nil
 }
 
 func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
 	var toReturn structs.HardwareInfo
-	readWelcome := true
 	// get the hostname
 	addr, e := net.LookupAddr(vs.Address)
 	if e != nil {
@@ -89,7 +79,7 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	}
 
 	// get build date
-	buildDate, err := hardwareCommand(BuildDate, "", vs.Address, readWelcome)
+	buildDate, err := vs.hardwareCommand(ctx, BuildDate, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get build date from %s", vs.Address)
 	}
@@ -97,7 +87,7 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	toReturn.BuildDate = buildDate
 
 	// get device model
-	model, err := hardwareCommand(Model, "", vs.Address, readWelcome)
+	model, err := vs.hardwareCommand(ctx, Model, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get model number from %s", vs.Address)
 	}
@@ -105,7 +95,7 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	toReturn.ModelName = model
 
 	// get device protocol version
-	protocol, err := hardwareCommand(ProtocolVersion, "", vs.Address, readWelcome)
+	protocol, err := vs.hardwareCommand(ctx, ProtocolVersion, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get protocol version from %s", vs.Address)
 	}
@@ -113,7 +103,7 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	toReturn.ProtocolVersion = strings.Trim(protocol, "3000:")
 
 	// get firmware version
-	firmware, err := hardwareCommand(FirmwareVersion, "", vs.Address, readWelcome)
+	firmware, err := vs.hardwareCommand(ctx, FirmwareVersion, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get firmware version from %s", vs.Address)
 	}
@@ -121,7 +111,7 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	toReturn.FirmwareVersion = firmware
 
 	// get serial number
-	serial, err := hardwareCommand(SerialNumber, "", vs.Address, readWelcome)
+	serial, err := vs.hardwareCommand(ctx, SerialNumber, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get serial number from %s", vs.Address)
 	}
@@ -129,19 +119,19 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	toReturn.SerialNumber = serial
 
 	// get IP address
-	ipAddress, err := hardwareCommand(IPAddress, "", vs.Address, readWelcome)
+	ipAddress, err := vs.hardwareCommand(ctx, IPAddress, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get IP address from %s... ironic...", vs.Address)
 	}
 
 	// get gateway
-	gateway, err := hardwareCommand(Gateway, "", vs.Address, readWelcome)
+	gateway, err := vs.hardwareCommand(ctx, Gateway, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get the gateway address from %s", vs.Address)
 	}
 
 	// get MAC address
-	mac, err := hardwareCommand(MACAddress, "", vs.Address, readWelcome)
+	mac, err := vs.hardwareCommand(ctx, MACAddress, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get the MAC address from %s", vs.Address)
 	}

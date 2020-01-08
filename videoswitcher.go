@@ -2,6 +2,7 @@ package kramer
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"time"
 
@@ -14,13 +15,6 @@ type VideoSwitcher struct {
 
 	pool *connpool.Pool
 }
-
-// type Kramer struct {
-// 	Address     string
-// 	Type        DeviceType
-// 	Room_System string
-// 	System_ID   string
-// }
 
 var (
 	_defaultTTL   = 30 * time.Second
@@ -60,34 +54,55 @@ func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
 
 	vs.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
 		d := net.Dialer{}
-		return d.DialContext(ctx, "tcp", vs.Address+":5000")
+		conn, err := d.DialContext(ctx, "tcp", vs.Address+":5000")
+		if err != nil {
+			return nil, fmt.Errorf("unable to open connection: %w", err)
+		}
 
-		// color.Set(color.FgMagenta)
-		// log.L.Infof("Opening telnet connection with %s", vs.Address)
-		// color.Unset()
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("context done before welcome message is sent: %w", ctx.Err())
+		case <-time.After(500 * time.Millisecond):
+		}
 
-		// addr, err := net.ResolveTCPAddr("tcp", vs.Address+":5000")
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		// conn, err := net.DialTCP("tcp", nil, addr)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		// if readWelcome {
-		// 	color.Set(color.FgMagenta)
-		// 	log.L.Infof("Reading welcome message")
-		// 	color.Unset()
-		// 	_, err := readUntil(CARRIAGE_RETURN, conn, 3)
-		// 	if err != nil {
-		// 		return conn, err
-		// 	}
-		// }
-
-		// return conn, err
+		return conn, nil
 	}
 
 	return vs
+}
+
+// SendCommand sends the byte array to the desired address of projector
+func (vs *VideoSwitcher) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+	var resp []byte
+
+	// command = strings.Replace(command, " ", string(SPACE), -1)
+	// color.Set(color.FgMagenta)
+	// log.L.Infof("Sending command %s", command)
+	// color.Unset()
+	// command += string(CARRIAGE_RETURN) + string(LINE_FEED)
+	// conn.Write([]byte(command))
+
+	err := vs.pool.Do(ctx, func(conn connpool.Conn) error {
+		_ = conn.SetWriteDeadline(time.Now().Add(3 * time.Second))
+
+		n, err := conn.Write(cmd)
+		switch {
+		case err != nil:
+			return err
+		case n != len(cmd):
+			return fmt.Errorf("wrote %v/%v bytes of command 0x%x", n, len(cmd), cmd)
+		}
+
+		resp, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
+		if err != nil {
+			return fmt.Errorf("unable to read response: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }

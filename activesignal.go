@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/byuoitav/common/structs"
-	"github.com/fatih/color"
 )
 
 func (vs *VideoSwitcher) GetActiveSignal(ctx context.Context, port string) (error, structs.ActiveSignal) {
@@ -18,7 +17,7 @@ func (vs *VideoSwitcher) GetActiveSignal(ctx context.Context, port string) (erro
 		return fmt.Errorf("Error: %s", err), signal
 	}
 
-	signal, ne := GetActiveSignalByPort(vs.Address, i, rW)
+	signal, ne := vs.GetActiveSignalByPort(ctx, i, rW)
 	if ne != nil {
 		return fmt.Errorf("Error: %s", err), signal
 	}
@@ -43,24 +42,22 @@ func ToIndexOne(numString string) (string, error) {
 
 // Returns if a given number (in a string) is less than zero.
 func LessThanZero(numString string) bool {
-	defer color.Unset()
 	num, err := strconv.Atoi(numString)
 	if err != nil {
-		color.Set(color.FgRed)
 		return false
 	}
 
 	return num < 0
 }
 
-func GetActiveSignalByPort(address, port string, readWelcome bool) (structs.ActiveSignal, error) {
+func (vs *VideoSwitcher) GetActiveSignalByPort(ctx context.Context, port string, readWelcome bool) (structs.ActiveSignal, error) {
 	var signal structs.ActiveSignal
 
 	signal.Active = false
 
-	signalResponse, err := hardwareCommand(Signal, port, address, readWelcome)
+	signalResponse, err := vs.hardwareCommand(ctx, Signal, port)
 	if err != nil {
-		return signal, fmt.Errorf("failed to get the signal for %s on %s", port, address)
+		return signal, fmt.Errorf("failed to get the signal for %s on %s", port, vs.Address)
 	}
 
 	signalStatus := strings.Split(signalResponse, ",")[1]
