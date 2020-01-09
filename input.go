@@ -22,7 +22,7 @@ func (vs *VideoSwitcher) getInputByOutput(ctx context.Context, output string) (s
 	log.L.Debugf("Getting input for output port %s", output)
 	log.L.Debugf("Changing to 1-based indexing... (+1 to each port number)")
 
-	cmd := []byte(fmt.Sprintf("#VID? %s", p))
+	cmd := []byte(fmt.Sprintf("#VID? %s\r\n", p))
 	resp, err := vs.SendCommand(ctx, cmd)
 	if err != nil {
 		logError(err.Error())
@@ -69,7 +69,7 @@ func (vs *VideoSwitcher) setInputByOutput(ctx context.Context, output, input str
 	log.L.Debugf("Routing %v to %v on %v", input, output, vs.Address)
 	log.L.Debugf("Changing to 1-based indexing... (+1 to each port number)")
 
-	cmd := []byte(fmt.Sprintf("#VID %s>%s", i, o))
+	cmd := []byte(fmt.Sprintf("#VID %s>%s\r\n", i, o))
 
 	resp, err := vs.SendCommand(ctx, cmd)
 	if err != nil {

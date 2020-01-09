@@ -50,9 +50,9 @@ func (vs *VideoSwitcher) hardwareCommand(ctx context.Context, commandType, param
 
 	if len(param) > 0 {
 		num, _ := strconv.Atoi(param)
-		cmd = []byte(fmt.Sprintf("#%s? %d", commandType, num))
+		cmd = []byte(fmt.Sprintf("#%s? %d\r\n", commandType, num))
 	} else {
-		cmd = []byte(fmt.Sprintf("#%s?", commandType))
+		cmd = []byte(fmt.Sprintf("#%s?\r\n", commandType))
 	}
 
 	resp, err := vs.SendCommand(ctx, cmd)
