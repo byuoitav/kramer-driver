@@ -12,7 +12,7 @@ import (
 )
 
 // GetInput returns the current input
-func (vs *VideoSwitcher) getInputByOutput(ctx context.Context, output string) (string, error) {
+func (vs *VideoSwitcher) GetInputByOutput(ctx context.Context, output string) (string, error) {
 
 	p, err := ToIndexOne(output)
 	if err != nil || LessThanZero(output) {
@@ -55,7 +55,7 @@ func (vs *VideoSwitcher) getInputByOutput(ctx context.Context, output string) (s
 }
 
 // SwitchInput changes the input on the given output to input
-func (vs *VideoSwitcher) setInputByOutput(ctx context.Context, output, input string) error {
+func (vs *VideoSwitcher) SetInputByOutput(ctx context.Context, output, input string) error {
 	i, err := ToIndexOne(input)
 	if err != nil || LessThanZero(input) {
 		return fmt.Errorf("Error! Input parameter %s is not valid!", input)
