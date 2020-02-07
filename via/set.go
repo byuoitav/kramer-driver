@@ -1,28 +1,25 @@
 package via
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/byuoitav/common/log"
-
-	"github.com/fatih/color"
+	"github.com/byuoitav/kramer-driver/via"
 )
 
 const REBOOT = "Reboot"
 const RESET = "Reset"
 
-func Reboot(address string) error {
-	defer color.Unset()
-	color.Set(color.FgYellow)
-
+func (v *VIA) Reboot(ctx context.Context) error {
 	var command Command
 	command.Command = REBOOT
 
-	log.L.Infof("Sending command %s to %s", REBOOT, address)
+	log.L.Infof("Sending command %s to %s", REBOOT, v.Address)
 
-	_, err := SendCommand(command, address)
+	_, err := SendCommand(command, v.Address)
 	if err != nil {
 		return err
 	}
@@ -30,16 +27,13 @@ func Reboot(address string) error {
 	return nil
 }
 
-func Reset(address string) error {
-	defer color.Unset()
-	color.Set(color.FgYellow)
-
+func (v *VIA) Reset(ctx context.Context) error {
 	var command Command
 	command.Command = RESET
 
-	log.L.Infof("Sending command %s to %s", RESET, address)
+	log.L.Infof("Sending command %s to %s", RESET, v.Address)
 
-	resp, err := SendCommand(command, address)
+	resp, err := SendCommand(command, v.Address)
 	if err != nil {
 		return err
 	}
@@ -51,10 +45,7 @@ func Reset(address string) error {
 	return errors.New(fmt.Sprintf("Incorrect response for command. (Response: %s)", resp))
 }
 
-func SetVolume(address string, volumec string) (string, error) {
-	defer color.Unset()
-	color.Set(color.FgYellow)
-
+func (v *VIA) SetVolume(ctx context.Context, address string, volumec string) (string, error) {
 	var command Command
 	command.Command = "Vol"
 	command.Param1 = "Set"

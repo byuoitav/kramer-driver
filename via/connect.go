@@ -126,9 +126,6 @@ func getConnection(address string) (*net.TCPConn, error) {
 // Create a presistent connection in order to catch actions and events that are printed
 // out on console. This includes login, logoff, media presentation, and sharing events
 func PersistConnection(addr string) (*net.TCPConn, error) {
-	defer color.Unset()
-	color.Set(color.FgCyan)
-
 	// get the connection
 	log.L.Infof("Opening persistent telnet connection for reading events from %s", addr)
 	pconn, err := getConnection(addr)
@@ -149,9 +146,7 @@ func VolumeParse(vollevel string) (int, error) {
 	vfin, err := strconv.Atoi(vol)
 	if err != nil {
 		err = fmt.Errorf("Error converting response: %s", err.Error())
-		color.Set(color.FgRed)
 		log.L.Infof("%s", err.Error())
-		color.Unset()
 		return 0, err
 	}
 	return vfin, nil

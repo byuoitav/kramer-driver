@@ -1,6 +1,7 @@
 package via
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -19,9 +20,7 @@ const (
 )
 
 // IsConnected checks the status of the VIA connection
-func IsConnected(address string) bool {
-	defer color.Unset()
-	color.Set(color.FgYellow)
+func (v *VIA) IsConnected(ctx context.Context, address string) bool {
 	connected := false
 
 	log.L.Infof("Getting connected status of %s", address)
@@ -36,7 +35,7 @@ func IsConnected(address string) bool {
 }
 
 // Get the Room Code and return the current room code as a string
-func GetRoomCode(address string) (string, error) {
+func (v *VIA) GetRoomCode(ctx context.Context, address string) (string, error) {
 	var command Command
 	command.Command = "RCode"
 	command.Param1 = "Get"
@@ -59,7 +58,7 @@ func GetRoomCode(address string) (string, error) {
 }
 
 //GetPresenterCount .
-func GetPresenterCount(address string) (int, error) {
+func (v *VIA) GetPresenterCount(ctx context.Context, address string) (int, error) {
 	var command Command
 	command.Command = "PList"
 	command.Param1 = "all"
@@ -90,10 +89,7 @@ func GetPresenterCount(address string) (int, error) {
 }
 
 // GetVolume for a VIA device
-func GetVolume(address string) (int, error) {
-
-	defer color.Unset()
-	color.Set(color.FgYellow)
+func (v *VIA) GetVolume(ctx context.Context, address string) (int, error) {
 
 	var command Command
 	command.Command = "Vol"
@@ -108,10 +104,7 @@ func GetVolume(address string) (int, error) {
 }
 
 // GetHardwareInfo for a VIA device
-func GetHardwareInfo(address string) (structs.HardwareInfo, *nerr.E) {
-	defer color.Unset()
-	color.Set(color.FgYellow)
-
+func (v *VIA) GetHardwareInfo(ctx context.Context, address string) (structs.HardwareInfo, *nerr.E) {
 	log.L.Infof("Getting hardware info of %s", address)
 
 	var toReturn structs.HardwareInfo
@@ -214,14 +207,11 @@ func GetActiveSignal(address string) (structs.ActiveSignal, *nerr.E) {
 }
 
 // getStatusOfUsers returns the status of users that are logged in to the VIA
-func GetStatusOfUsers(address string) (structs.VIAUsers, *nerr.E) {
+func (v *VIA) GetStatusOfUsers(ctx context.Context, address string) (structs.VIAUsers, *nerr.E) {
 	var toReturn structs.VIAUsers
 	toReturn.InactiveUsers = []string{}
 	toReturn.ActiveUsers = []string{}
 	toReturn.UsersWaiting = []string{}
-
-	defer color.Unset()
-	color.Set(color.FgYellow)
 
 	var command Command
 	command.Command = "PList"
