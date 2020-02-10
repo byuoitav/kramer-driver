@@ -1,8 +1,8 @@
 package via
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/status"
@@ -11,8 +11,8 @@ import (
 )
 
 // GetViaActiveSignal returns the status of users that are logged in to the VIA
-func GetViaActiveSignal(context echo.Context) error {
-	signal, err := via.GetActiveSignal(context.Param("address"))
+func (v *VIA) GetViaActiveSignal(ctx context.Context) error {
+	signal, err := via.GetActiveSignal(v.Address)
 	if err != nil {
 		log.L.Errorf("Failed to retrieve VIA active signal: %s", err.Error())
 		return context.JSON(http.StatusInternalServerError, err)
@@ -22,8 +22,8 @@ func GetViaActiveSignal(context echo.Context) error {
 }
 
 // GetViaRoomCode - Get the room code of a VIA and return it per request
-func GetViaRoomCode(context echo.Context) error {
-	code, err := via.GetRoomCode(context.Param("address"))
+func (v *VIA) GetViaRoomCode(ctx context.Context) error {
+	code, err := via.GetRoomCode(v.Address)
 	if err != nil {
 		log.L.Errorf("Failed to retrieve VIA room code: %s", err.Error())
 		return context.JSON(http.StatusInternalServerError, err)
@@ -32,8 +32,8 @@ func GetViaRoomCode(context echo.Context) error {
 }
 
 // Get a list of all connected users to the VIA
-func GetConnectedUsers(context echo.Context) error {
-	userlist, err := via.GetStatusOfUsers(context.Param("address"))
+func (v *VIA) GetConnectedUsers(ctx context.Context) error {
+	userlist, err := via.GetStatusOfUsers(v.Address)
 	if err != nil {
 		log.L.Errorf("Failed to retrieve current user list: %s", err.Error())
 		return context.JSON(http.StatusInternalServerError, err)

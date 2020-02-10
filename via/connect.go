@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net"
-	"os"
 	"regexp"
 	"strconv"
 	"time"

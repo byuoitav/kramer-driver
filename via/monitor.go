@@ -1,4 +1,4 @@
-package monitor
+package via
 
 import (
 	"bufio"
@@ -58,13 +58,6 @@ func init() {
 	room = split[1]
 }
 
-type message struct {
-	EventType string
-	Action    string
-	User      string
-	State     string
-}
-
 // Ping over connection to keep alive.
 func pingTest(pconn *net.TCPConn) error {
 	defer color.Unset()
@@ -86,7 +79,7 @@ func pingTest(pconn *net.TCPConn) error {
 
 // Retry connection if connection has failed
 func retryViaConnection(device structs.Device, pconn *net.TCPConn, event events.Event) {
-	log.L.Info(color.HiMagentaString("[retry] Retrying Connection to VIA"))
+	log.L.Info("[retry] Retrying Connection to VIA")
 	addr := device.Address
 	pconn, err := via.PersistConnection(addr)
 	for err != nil {

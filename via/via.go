@@ -31,6 +31,30 @@ type Command struct {
 	Param10  string   `xml:"P10,omitempty"`
 }
 
+type message struct {
+	EventType string
+	Action    string
+	User      string
+	State     string
+}
+
+// Device - a representation of a device involved in a TEC Pi system.
+type Device struct {
+	ID          string                 `json:"_id"`
+	Name        string                 `json:"name"`
+	Address     string                 `json:"address"`
+	Description string                 `json:"description"`
+	DisplayName string                 `json:"display_name"`
+	Type        DeviceType             `json:"type,omitempty"`
+	Roles       []Role                 `json:"roles"`
+	Ports       []Port                 `json:"ports"`
+	Tags        []string               `json:"tags,omitempty"`
+	Attributes  map[string]interface{} `json:"attributes,omitempty"`
+
+	// Proxy is a map of regex (matching command id's) to the host:port of the proxy
+	Proxy map[string]string `json:"proxy,omitempty"`
+}
+
 func (v *VIA) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 	// opening a connection with the VIAs and then return the volume for the device
 	log.L.Infof("Getting volume for %v", v.Address)
