@@ -122,8 +122,8 @@ func getConnection(address string) (*net.TCPConn, error) {
 	return conn, nil
 }
 
-// Create a presistent connection in order to catch actions and events that are printed
-// out on console. This includes login, logoff, media presentation, and sharing events
+//Create a persistent connection in order to catch actions and events that are printed
+//out on console. This includes login, logoff, media presentation, and sharing events
 func PersistConnection(addr string) (*net.TCPConn, error) {
 	// get the connection
 	log.L.Infof("Opening persistent telnet connection for reading events from %s", addr)

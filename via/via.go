@@ -3,17 +3,20 @@ package via
 import (
 	"context"
 	"encoding/xml"
+	"errors"
 	"fmt"
 
 	"github.com/byuoitav/common/log"
 )
 
+// VIA: Struct that defines general parameters needed for any VIA
 type VIA struct {
 	Address  string
 	Username string
 	Password string
 }
 
+// Command: Struct used to build the commands that need to be sent to the VIA
 type Command struct {
 	XMLName  xml.Name `xml:"P"`
 	Username string   `xml:"UN"`
@@ -55,8 +58,8 @@ type Device struct {
 	Proxy map[string]string `json:"proxy,omitempty"`
 }
 
+// GetVolumeByBlock: opening a connection with the VIAs and then return the volume for the device
 func (v *VIA) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
-	// opening a connection with the VIAs and then return the volume for the device
 	log.L.Infof("Getting volume for %v", v.Address)
 	viaResp, err := v.GetVolume(ctx, v.Address)
 	if err != nil {
@@ -68,13 +71,13 @@ func (v *VIA) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 
 }
 
+// GetMutedByBlock: Return error because VIAs do not support a mute function
 func (v *VIA) GetMutedByBlock(ctx context.Context) (bool, error) {
-	// Return error because VIAs do not support a mute function
-	return errors.New(fmt.Sprintf("Error in getting mute status of VIA, Feature not supported"))
+	return _, errors.New(fmt.Sprintf("Error in getting mute status of VIA, Feature not supported"))
 }
 
+// SetVolumeByBlock: Connect and set the volume on the VIA
 func (v *VIA) SetVolumeByBlock(ctx context.Context, block string, volume int) error {
-	// Connect and set the volume on the VIA
 	log.L.Infof("Setting volume for %v", v.Address)
 	viaResp, err := v.SetVolume(ctx, v.Address, volume)
 	if err != nil {
@@ -84,13 +87,13 @@ func (v *VIA) SetVolumeByBlock(ctx context.Context, block string, volume int) er
 	return nil
 }
 
+// SetMutedByBlock: Return error because VIAs do not support mute
 func (v *VIA) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
-	// Return error because VIAs do not support mute
 	return errors.New(fmt.Sprintf("Error setting mute status of VIA, Feature not supported"))
 }
 
+// RebootVIA: Reboot a VIA using the API
 func (v *VIA) RebootVIA(ctx context.Context) {
-	// Reboot a VIA using the API
 	log.L.Infof("Rebooting %v", v.Address)
 	viaResp, err := v.Reboot(ctx)
 	if err != nil {
@@ -99,8 +102,8 @@ func (v *VIA) RebootVIA(ctx context.Context) {
 	}
 }
 
+// ResetVIA: Reset a VIA sessions - Causes VIAAdmin to log out and log back in
 func (v *VIA) ResetVIA(ctx context.Context) {
-	// Reset a VIA sessions - Causes VIAAdmin to log out and log back in
 	log.L.Infof("Reseting %v", v.Address)
 	viaResp, err := v.Reset(ctx)
 	if err != nil {

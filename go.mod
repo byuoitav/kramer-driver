@@ -7,6 +7,7 @@ require (
 	github.com/byuoitav/common v0.0.0-20191210190714-e9b411b3cc0d
 	github.com/byuoitav/connpool v0.1.5
 	github.com/byuoitav/kramer-microservice v0.0.0-20190827223429-01781d8ea02e
+	github.com/byuoitav/via-monitor v0.0.0-20200210202835-cca624385bcb // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fatih/color v1.8.0
 	github.com/gorilla/websocket v1.4.1 // indirect
