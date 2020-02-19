@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/byuoitav/common/log"
-	"github.com/byuoitav/common/structs"
+	//"github.com/byuoitav/common/structs"
 )
 
 // VIA: Struct that defines general parameters needed for any VIA

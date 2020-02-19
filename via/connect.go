@@ -94,9 +94,9 @@ func (c *Command) writeCommand(conn *net.TCPConn) error {
 // AddAuth adds auth onto the command
 // changed: Made function Public
 func (c *Command) addAuth(password bool) {
-	c.Username = via.Username
+	c.Username = VIA.Username
 	if password {
-		c.Password = via.Password
+		c.Password = VIA.Password
 	}
 }
 

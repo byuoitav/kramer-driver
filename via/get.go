@@ -57,7 +57,7 @@ func (v *VIA) GetRoomCode(ctx context.Context, address string) (string, error) {
 }
 
 //GetPresenterCount .
-func (v *VIA) GetPresenterCount(ctx context.Context, address string) (int, error) {
+func GetPresenterCount(address string) (int, error) {
 	var command Command
 	command.Command = "PList"
 	command.Param1 = "all"
