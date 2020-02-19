@@ -5,9 +5,7 @@ import (
 	"net/http"
 
 	"github.com/byuoitav/common/log"
-	"github.com/byuoitav/common/status"
 	"github.com/byuoitav/kramer-microservice/via"
-	"github.com/labstack/echo"
 )
 
 // GetViaActiveSignal returns the status of users that are logged in to the VIA
