@@ -17,8 +17,8 @@ import (
 	"github.com/byuoitav/common/nerr"
 	"github.com/byuoitav/common/structs"
 	"github.com/byuoitav/common/v2/events"
-	"github.com/byuoitav/kramer-microservice/via"
-	"github.com/fatih/color"
+	//"github.com/byuoitav/kramer-microservice/via"
+	//"github.com/fatih/color"
 )
 
 const (
@@ -60,8 +60,6 @@ func init() {
 
 // Ping over connection to keep alive.
 func pingTest(pconn *net.TCPConn) error {
-	defer color.Unset()
-	color.Set(color.FgCyan)
 	var c via.Command
 	c.Username = "su"
 	c.Command = "IpInfo"
@@ -83,7 +81,7 @@ func retryViaConnection(device structs.Device, pconn *net.TCPConn, event events.
 	addr := device.Address
 	pconn, err := via.PersistConnection(addr)
 	for err != nil {
-		log.L.Error(color.RedString("Retry Failed, Trying again in 10 seconds"))
+		log.L.Error("Retry Failed, Trying again in 10 seconds")
 		time.Sleep(reconnInterval)
 		pconn, err = via.PersistConnection(addr)
 	}
@@ -97,8 +95,8 @@ func readPump(device structs.Device, pconn *net.TCPConn, event events.Event) {
 	// defer closing connection
 	defer func(device structs.Device) {
 		pconn.Close()
-		log.L.Errorf(color.HiRedString("Connection to VIA %v is dying.", device.Address))
-		log.L.Info(color.HiRedString("Trying to reconnect........"))
+		log.L.Errorf("Connection to VIA %v is dying.", device.Address)
+		log.L.Info("Trying to reconnect........")
 		//retry connection to VIA device
 		retryViaConnection(device, pconn, event)
 	}(device)
@@ -195,7 +193,7 @@ func writePump(device structs.Device, pconn *net.TCPConn) {
 	// defer closing connection
 	defer func(device structs.Device) {
 		pconn.Close()
-		log.L.Errorf(color.HiRedString("Error on write pump for %v. Write pump closing.", device.Address))
+		log.L.Errorf("Error on write pump for %v. Write pump closing.", device.Address)
 	}(device)
 	ticker := time.NewTicker(pingInterval * time.Millisecond)
 	// Once the pingInterval is reached, execute the ping -
@@ -203,7 +201,7 @@ func writePump(device structs.Device, pconn *net.TCPConn) {
 	for range ticker.C {
 		err := pingTest(pconn)
 		if err != nil {
-			log.L.Errorf(color.HiRedString("Ping Failed Error: %v", err))
+			log.L.Errorf("Ping Failed Error: %v", err)
 			return
 		}
 	}

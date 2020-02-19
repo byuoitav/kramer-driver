@@ -6,10 +6,9 @@ import (
 	"strings"
 
 	"github.com/byuoitav/common/log"
-
 	"github.com/byuoitav/common/nerr"
 	"github.com/byuoitav/common/structs"
-	"github.com/fatih/color"
+	//"github.com/fatih/color"
 )
 
 // User status constants
