@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/byuoitav/common/log"
+	"github.com/byuoitav/common/struct"
 )
 
 // VIA: Struct that defines general parameters needed for any VIA
@@ -34,6 +35,7 @@ type Command struct {
 	Param10  string   `xml:"P10,omitempty"`
 }
 
+/*
 type message struct {
 	EventType string
 	Action    string
@@ -57,7 +59,7 @@ type Device struct {
 	// Proxy is a map of regex (matching command id's) to the host:port of the proxy
 	Proxy map[string]string `json:"proxy,omitempty"`
 }
-
+*/
 // GetVolumeByBlock: opening a connection with the VIAs and then return the volume for the device
 func (v *VIA) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 	log.L.Infof("Getting volume for %v", v.Address)
