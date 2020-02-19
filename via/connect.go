@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/byuoitav/common/log"
-
-	"github.com/fatih/color"
 )
 
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
@@ -46,7 +44,6 @@ func SendCommand(command Command, addr string) (string, error) {
 	}
 
 	if len(string(resp)) > 0 {
-		color.Set(color.FgBlue)
 		log.L.Infof("Response from device: %s", resp)
 	}
 
@@ -88,7 +85,6 @@ func (c *Command) writeCommand(conn *net.TCPConn) error {
 
 	if len(c.Password) == 0 {
 		log.L.Infof("Sending command: %s", b)
-		color.Set(color.FgMagenta)
 	}
 
 	conn.Write(b)
