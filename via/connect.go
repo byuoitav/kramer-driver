@@ -5,15 +5,24 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net"
-	"regexp"
-	"strconv"
+
 	"time"
 
 	"github.com/byuoitav/common/log"
 )
 
+var ViaUser string
+var ViaPass string
+
+func (v *VIA) importUser() (ViaUser, ViaPass string) {
+	ViaUser = v.Username
+	ViaPass = v.Password
+	return ViaUser, ViaPass
+}
+
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
-func SendCommand(command Command, addr string) (string, error) {
+func (v *VIA) SendCommand(command Command, addr string) (string, error) {
+	Username, Password := v.importUser()
 	// get the connection
 	log.L.Infof("Opening telnet connection with %s", addr)
 	conn, err := getConnection(addr)
@@ -27,11 +36,11 @@ func SendCommand(command Command, addr string) (string, error) {
 	conn.SetReadDeadline(time.Now().Add(timeoutDuration))
 
 	// login
-	login(conn)
+	login(conn, Username, Password)
 
 	// write command
 	if len(command.Command) > 0 {
-		command.addAuth(false)
+		command.addAuth(Username, Password, false)
 		command.writeCommand(conn)
 	}
 
@@ -50,13 +59,13 @@ func SendCommand(command Command, addr string) (string, error) {
 	return string(resp), nil
 }
 
-func login(conn *net.TCPConn) error {
+func login(conn *net.TCPConn, ViaUser, ViaPass string) error {
 	var cmd Command
-	cmd.addAuth(true)
+	cmd.addAuth(ViaUser, ViaPass, true)
 	cmd.Command = "Login"
 
 	log.L.Infof("Logging in...")
-
+	log.L.Infof("Username: %s", ViaUser)
 	err := cmd.writeCommand(conn)
 	if err != nil {
 		return err
@@ -93,10 +102,10 @@ func (c *Command) writeCommand(conn *net.TCPConn) error {
 
 // AddAuth adds auth onto the command
 // changed: Made function Public
-func (c *Command) addAuth(password bool) {
-	c.Username = VIA.Username
+func (c *Command) addAuth(ViaUser string, ViaPass string, password bool) {
+	c.Username = ViaUser
 	if password {
-		c.Password = VIA.Password
+		c.Password = ViaPass
 	}
 }
 
@@ -129,20 +138,7 @@ func PersistConnection(addr string) (*net.TCPConn, error) {
 	}
 
 	// login
-	login(pconn)
+	login(pconn, ViaUser, ViaPass)
 
 	return pconn, nil
-}
-
-// VolumeParse parser to pull out the volume level from the VIA API returned string
-func VolumeParse(vollevel string) (int, error) {
-	re := regexp.MustCompile("[0-9]+")
-	vol := re.FindString(vollevel)
-	vfin, err := strconv.Atoi(vol)
-	if err != nil {
-		err = fmt.Errorf("Error converting response: %s", err.Error())
-		log.L.Infof("%s", err.Error())
-		return 0, err
-	}
-	return vfin, nil
 }

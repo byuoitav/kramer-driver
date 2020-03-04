@@ -19,7 +19,7 @@ func (v *VIA) Reboot(ctx context.Context) error {
 
 	log.L.Infof("Sending command %s to %s", REBOOT, v.Address)
 
-	_, err := SendCommand(command, v.Address)
+	_, err := v.SendCommand(command, v.Address)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (v *VIA) Reset(ctx context.Context) error {
 
 	log.L.Infof("Sending command %s to %s", RESET, v.Address)
 
-	resp, err := SendCommand(command, v.Address)
+	resp, err := v.SendCommand(command, v.Address)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (v *VIA) SetVolume(ctx context.Context, address string, volumec string) (st
 
 	log.L.Infof("Sending volume set command to %s", address)
 
-	resp, err := SendCommand(command, address)
+	resp, err := v.SendCommand(command, address)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Error in setting volume on %s", address))
 	}
