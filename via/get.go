@@ -25,8 +25,10 @@ func (v *VIA) IsConnected(ctx context.Context, address string) bool {
 	log.L.Infof("Getting connected status of %s", address)
 
 	var command Command
+	command.Command = "GetSerialNo"
+
 	resp, err := v.SendCommand(command, address)
-	if err == nil && strings.Contains(resp, "Successful") {
+	if err == nil && strings.Contains(resp, "GetSerialNo") {
 		connected = true
 	}
 
