@@ -2,6 +2,7 @@ package via
 
 import (
 	"bufio"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"net"
@@ -12,6 +13,7 @@ import (
 	"github.com/byuoitav/common/log"
 )
 
+/*
 var ViaUser string
 var ViaPass string
 
@@ -20,13 +22,13 @@ func (v *VIA) importUser() (ViaUser, ViaPass string) {
 	ViaPass = v.Password
 	return ViaUser, ViaPass
 }
-
+*/
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
-func (v *VIA) SendCommand(command Command, addr string) (string, error) {
-	Username, Password := v.importUser()
+func (v *VIA) SendCommand(ctx context.Context, command Command) (string, error) {
+	//Username, Password := v.importUser()
 	// get the connection
-	log.L.Infof("Opening telnet connection with %s", addr)
-	conn, err := getConnection(addr)
+	log.L.Infof("Opening telnet connection with %s", v.Address)
+	conn, err := getConnection(v.Address)
 	if err != nil {
 		return "", err
 	}
@@ -38,14 +40,14 @@ func (v *VIA) SendCommand(command Command, addr string) (string, error) {
 
 	// login
 	//login(conn, Username, Password)
-	err = login(conn, Username, Password)
+	err = v.login(ctx, conn)
 	if err != nil {
 		log.L.Debugf("Houston, we have a problem logging in. The login failed")
 		return "", err
 	}
 	// write command
 	if len(command.Command) > 0 {
-		command.addAuth(Username, Password, false)
+		command.addAuth(v.Username, v.Password, false)
 		command.writeCommand(conn)
 	}
 
@@ -64,9 +66,10 @@ func (v *VIA) SendCommand(command Command, addr string) (string, error) {
 	return string(resp), nil
 }
 
-func login(conn *net.TCPConn, ViaUser, ViaPass string) error {
+func (v *VIA) login(ctx context.Context, conn *net.TCPConn) error {
 	var cmd Command
-	cmd.addAuth(ViaUser, ViaPass, true)
+
+	cmd.addAuth(v.Username, v.Password, true)
 	cmd.Command = "Login"
 
 	// read welcome message (Only Important when we first open a connection and login)
@@ -79,7 +82,7 @@ func login(conn *net.TCPConn, ViaUser, ViaPass string) error {
 	}
 
 	log.L.Infof("Logging in...")
-	log.L.Debugf("Username: %s", ViaUser)
+	log.L.Debugf("Username: %s", v.Username)
 	err = cmd.writeCommand(conn)
 	if err != nil {
 		return err
@@ -131,10 +134,10 @@ func (c *Command) writeCommand(conn *net.TCPConn) error {
 
 // AddAuth adds auth onto the command
 // changed: Made function Public
-func (c *Command) addAuth(ViaUser string, ViaPass string, password bool) {
-	c.Username = ViaUser
+func (c *Command) addAuth(viaUser string, viaPass string, password bool) {
+	c.Username = viaUser
 	if password {
-		c.Password = ViaPass
+		c.Password = viaPass
 	}
 }
 
@@ -158,16 +161,16 @@ func getConnection(address string) (*net.TCPConn, error) {
 
 //Create a persistent connection in order to catch actions and events that are printed
 //out on console. This includes login, logoff, media presentation, and sharing events
-func PersistConnection(addr, ViaUser, ViaPass string) (*net.TCPConn, error) {
+func (v *VIA) PersistConnection(ctx context.Context) (*net.TCPConn, error) {
 	// get the connection
-	log.L.Infof("Opening persistent telnet connection for reading events from %s", addr)
-	pconn, err := getConnection(addr)
+	log.L.Infof("Opening persistent telnet connection for reading events from %s", v.Address)
+	pconn, err := getConnection(v.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	// login
-	err = login(pconn, ViaUser, ViaPass)
+	err = v.login(ctx, pconn)
 	if err != nil {
 		log.L.Debugf("Houston, we have a problem logging in. The login failed")
 		return nil, err

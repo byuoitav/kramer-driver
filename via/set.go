@@ -19,7 +19,7 @@ func (v *VIA) Reboot(ctx context.Context) error {
 
 	log.L.Infof("Sending command %s to %s", REBOOT, v.Address)
 
-	_, err := v.SendCommand(command, v.Address)
+	_, err := v.SendCommand(ctx, command)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (v *VIA) Reset(ctx context.Context) error {
 
 	log.L.Infof("Sending command %s to %s", RESET, v.Address)
 
-	resp, err := v.SendCommand(command, v.Address)
+	resp, err := v.SendCommand(ctx, command)
 	if err != nil {
 		return err
 	}
@@ -45,17 +45,17 @@ func (v *VIA) Reset(ctx context.Context) error {
 	return errors.New(fmt.Sprintf("Incorrect response for command. (Response: %s)", resp))
 }
 
-func (v *VIA) SetVolume(ctx context.Context, address string, volumec string) (string, error) {
+func (v *VIA) SetVolume(ctx context.Context, volumec string) (string, error) {
 	var command Command
 	command.Command = "Vol"
 	command.Param1 = "Set"
 	command.Param2 = volumec
 
-	log.L.Infof("Sending volume set command to %s", address)
+	log.L.Infof("Sending volume set command to %s", v.Address)
 
-	resp, err := v.SendCommand(command, address)
+	resp, err := v.SendCommand(ctx, command)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error in setting volume on %s", address))
+		return "", errors.New(fmt.Sprintf("Error in setting volume on %s", v.Address))
 	}
 
 	return resp, nil

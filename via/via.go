@@ -40,7 +40,7 @@ type Command struct {
 // GetVolumeByBlock: opening a connection with the VIAs and then return the volume for the device
 func (v *VIA) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 	log.L.Infof("Getting volume for %v", v.Address)
-	viaResp, err := v.GetVolume(ctx, v.Address)
+	viaResp, err := v.GetVolume(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -61,7 +61,7 @@ func (v *VIA) SetVolumeByBlock(ctx context.Context, block string, volume int) er
 
 	volumec := strconv.Itoa(volume)
 
-	_, err := v.SetVolume(ctx, v.Address, volumec)
+	_, err := v.SetVolume(ctx, volumec)
 	if err != nil {
 		log.L.Debugf("Failed to set VIA Volume for %v", v.Address)
 		return errors.New(fmt.Sprintf("Error setting volume for %v", v.Address))
@@ -102,9 +102,9 @@ func (v *VIA) ResetVIA(ctx context.Context) error {
 	return nil
 }
 
-func (v *VIA) VIARoomCode(ctx context.Context, address string) error {
+func (v *VIA) VIARoomCode(ctx context.Context) error {
 	log.L.Infof("Getting Room Code for %v", v.Address)
-	resp, err := v.GetRoomCode(ctx, address)
+	resp, err := v.GetRoomCode(ctx)
 	if err != nil {
 		log.L.Debugf("Failed to get room code: %v", err)
 		return errors.New(fmt.Sprintf("Error getting room code: %v", err))
