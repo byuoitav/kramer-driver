@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/byuoitav/common/log"
-	"github.com/byuoitav/common/nerr"
-	"github.com/byuoitav/common/structs"
+	//"github.com/byuoitav/common/nerr"
+	//"github.com/byuoitav/common/structs"
 )
 
 // User status constants
@@ -104,10 +104,10 @@ func (v *VIA) GetVolume(ctx context.Context) (int, error) {
 }
 
 // GetHardwareInfo for a VIA device
-func (v *VIA) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
+func (v *VIA) GetHardwareInfo(ctx context.Context) (HardwareInfo, error) {
 	log.L.Infof("Getting hardware info of %s", v.Address)
 
-	var toReturn structs.HardwareInfo
+	var toReturn HardwareInfo
 	var command Command
 
 	// get serial number
@@ -115,7 +115,7 @@ func (v *VIA) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error)
 
 	serial, err := v.SendCommand(ctx, command)
 	if err != nil {
-		return toReturn, nerr.Translate(err).Addf("failed to get serial number from %s", v.Address)
+		return toReturn, fmt.Errorf("failed to get serial number from %s", v.Address)
 	}
 
 	toReturn.SerialNumber = parseResponse(serial, "|")
@@ -125,7 +125,7 @@ func (v *VIA) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error)
 
 	version, err := v.SendCommand(ctx, command)
 	if err != nil {
-		return toReturn, nerr.Translate(err).Addf("failed to get the firmware version of %s", v.Address)
+		return toReturn, fmt.Errorf("failed to get the firmware version of %s", v.Address)
 	}
 
 	toReturn.FirmwareVersion = parseResponse(version, "|")
@@ -135,7 +135,7 @@ func (v *VIA) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error)
 
 	macAddr, err := v.SendCommand(ctx, command)
 	if err != nil {
-		return toReturn, nerr.Translate(err).Addf("failed to get the MAC address of %s", v.Address)
+		return toReturn, fmt.Errorf("failed to get the MAC address of %s", v.Address)
 	}
 
 	// get IP information
@@ -143,7 +143,7 @@ func (v *VIA) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error)
 
 	ipInfo, err := v.SendCommand(ctx, command)
 	if err != nil {
-		return toReturn, nerr.Translate(err).Addf("failed to get the IP information from %s", v.Address)
+		return toReturn, fmt.Errorf("failed to get the IP information from %s", v.Address)
 	}
 
 	hostname, network := parseIPInfo(ipInfo)
@@ -169,7 +169,7 @@ func parseResponse(resp string, delimiter string) string {
 	return strings.Trim(msg, "\r\n")
 }
 
-func parseIPInfo(ip string) (hostname string, network structs.NetworkInfo) {
+func parseIPInfo(ip string) (hostname string, network NetworkInfo) {
 	ipList := strings.Split(ip, "|")
 
 	for _, item := range ipList {
@@ -191,8 +191,8 @@ func parseIPInfo(ip string) (hostname string, network structs.NetworkInfo) {
 }
 
 // GetActiveSignal determines the active signal of the VIA by getting the user count
-func (v *VIA) GetActiveSignal(ctx context.Context) (structs.ActiveSignal, error) {
-	signal := structs.ActiveSignal{Active: false}
+func (v *VIA) GetActiveSignal(ctx context.Context) (ActiveSignal, error) {
+	signal := ActiveSignal{Active: false}
 
 	count, err := v.GetPresenterCount(ctx)
 	if err != nil {
@@ -207,8 +207,8 @@ func (v *VIA) GetActiveSignal(ctx context.Context) (structs.ActiveSignal, error)
 }
 
 // getStatusOfUsers returns the status of users that are logged in to the VIA
-func (v *VIA) GetStatusOfUsers(ctx context.Context) (structs.VIAUsers, error) {
-	var toReturn structs.VIAUsers
+func (v *VIA) GetStatusOfUsers(ctx context.Context) (VIAUsers, error) {
+	var toReturn VIAUsers
 	toReturn.InactiveUsers = []string{}
 	toReturn.ActiveUsers = []string{}
 	toReturn.UsersWaiting = []string{}
