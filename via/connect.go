@@ -13,16 +13,6 @@ import (
 	"github.com/byuoitav/common/log"
 )
 
-/*
-var ViaUser string
-var ViaPass string
-
-func (v *VIA) importUser() (ViaUser, ViaPass string) {
-	ViaUser = v.Username
-	ViaPass = v.Password
-	return ViaUser, ViaPass
-}
-*/
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
 func (v *VIA) SendCommand(ctx context.Context, command Command) (string, error) {
 	//Username, Password := v.importUser()
