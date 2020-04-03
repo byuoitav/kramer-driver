@@ -1,4 +1,4 @@
-package kramer
+package via
 
 type Logger interface {
 	Debugf(format string, a ...interface{})
