@@ -61,3 +61,20 @@ func (v *VIA) SetVolume(ctx context.Context, volumec string) (string, error) {
 	return resp, nil
 
 }
+
+func (v *VIA) Alert(ctx context.Context, AlertMessage string) (string, error) {
+	var command Command
+	command.Command = "IAlert"
+	command.Param1 = AlertMessage
+	command.Param2 = "0"
+	command.Param3 = "5"
+
+	log.L.Infof("Sending an alert message -%s- to %s", AlertMessage, v.Address)
+
+	resp, err := v.SendCommand(ctx, command)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Error in setting volume on %s", v.Address))
+	}
+
+	return resp, nil
+}

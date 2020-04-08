@@ -113,6 +113,18 @@ func (v *VIA) VIARoomCode(ctx context.Context) error {
 	return nil
 }
 
+// SetAlert - Send an alert to the VIA
+func (v *VIA) SetAlert(ctx context.Context, message string) error {
+	log.L.Infof("Sending Alert to %v", v.Address)
+	resp, err := v.Alert(ctx, alertMessage)
+	if err != nil {
+		log.L.Debugf("Failed to send alrt message to %s", v.Address)
+		return fmt.Errorf("Error sending alert message: %v", err)
+	}
+	log.L.Infof("Alert: %s - Sent", resp)
+	return nil
+}
+
 // VolumeParse parser to pull out the volume level from the VIA API returned string
 func VolumeParse(vollevel string) (int, error) {
 	re := regexp.MustCompile("[0-9]+")

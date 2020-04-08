@@ -1,5 +1,24 @@
 package via
 
+import (
+	"time"
+)
+
+// Options Struct is used for logging options
+type options struct {
+	ttl    time.Duration
+	delay  time.Duration
+	logger logger
+}
+
+func (f optionFunc) apply(o *options) {
+	f(o)
+}
+
+type Option interface {
+	apply(*options)
+}
+
 // HardwareInfo contains the common information for device hardware information
 type HardwareInfo struct {
 	Hostname              string           `json:"hostname,omitempty"`
