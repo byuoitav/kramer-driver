@@ -51,9 +51,3 @@ type VIAUsers struct {
 	ActiveUsers   []string `json:"active_users"`
 	UsersWaiting  []string `json:"users_waiting"`
 }
-
-// ActiveSignal is our struct for reporting if a port is active or not
-type ActiveSignal struct {
-	// TODO should probably change this to a bool
-	Active bool `json:"active"`
-}
