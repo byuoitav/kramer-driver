@@ -28,7 +28,7 @@ type Via struct {
 	Logger   Logger
 }
 
-// comman: Struct used to build the commands that need to be sent to the VIA
+// command: Struct used to build the XML commands that need to be sent to the VIA
 type command struct {
 	XMLName  xml.Name `xml:"P"`
 	Username string   `xml:"UN"`
@@ -118,7 +118,7 @@ func (v *Via) Reboot(ctx context.Context) error {
 	return nil
 }
 
-// Reset: Reset a VIA sessions - Causes VIAAdmin to log out and log back in
+// Reset: Reset a VIA sessions - Causes VIAAdmin to log out and log back in which can help with some lock up issues.
 func (v *Via) Reset(ctx context.Context) error {
 	var command command
 	command.Command = viaReset
@@ -162,16 +162,31 @@ func (v *VIA) RoomCode(ctx context.Context) (string, error) {
 
 // SetAlert - Send an alert to the VIA
 func (v *VIA) SetAlert(ctx context.Context, message string) error {
+	var command Command
+	command.Command = "IAlert"
+	command.Param1 = AlertMessage
+	command.Param2 = "0"
+	command.Param3 = "5"
+
 	log.L.Infof("Sending Alert to %v", v.Address)
-	resp, err := v.Alert(ctx, alertMessage)
+
+	log.L.Debugf("Sending an alert message -%s- to %s", AlertMessage, v.Address)
+
+	resp, err := v.SendCommand(ctx, command)
 	if err != nil {
-		log.L.Debugf("Failed to send alrt message to %s", v.Address)
-		return fmt.Errorf("Error sending alert message: %v", err)
+		return fmt.Errorf("Error in setting alert on %s", v.Address)
 	}
-	log.L.Infof("Alert: %s - Sent", resp)
+	sp := strings.Split(resp, "|")
+	s := sp[1]
+	sint := stings.Atoi(s)
+	if sint != 1 {
+		return fmt.Errorf("Alert was not successfully sent, checking settings and try again")
+	}
+
 	return nil
 }
 
+// SetVolume - Used to set the volume on a VIA (Used by both VIA-Control and DSP Driver sets)
 func (v *Via) SetVolume(ctx context.Context, volume int) (string, error) {
 	var command command
 	command.Command = "Vol"
@@ -187,23 +202,6 @@ func (v *Via) SetVolume(ctx context.Context, volume int) (string, error) {
 
 	return resp, nil
 
-}
-
-func (v *VIA) Alert(ctx context.Context, AlertMessage string) (string, error) {
-	var command Command
-	command.Command = "IAlert"
-	command.Param1 = AlertMessage
-	command.Param2 = "0"
-	command.Param3 = "5"
-
-	log.L.Infof("Sending an alert message -%s- to %s", AlertMessage, v.Address)
-
-	resp, err := v.SendCommand(ctx, command)
-	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error in setting volume on %s", v.Address))
-	}
-
-	return resp, nil
 }
 
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
@@ -231,8 +229,16 @@ func (v *Via) sendCommand(ctx context.Context, command command) (string, error) 
 
 	// write command
 	if len(command.Command) > 0 {
-		command.addAuth(v.Username, v.Password, false)
-		command.writeCommand(conn)
+		command.Username = v.Username
+		b, err := xml.Marshal(command)
+		if err != nil {
+			return err
+		}
+
+		err = conn.Write(b)
+		if err != nil {
+			return err
+		}
 	}
 
 	reader := bufio.NewReader(conn)
@@ -253,7 +259,9 @@ func (v *Via) sendCommand(ctx context.Context, command command) (string, error) 
 func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	var cmd Command
 
-	cmd.addAuth(v.Username, v.Password, true)
+	//cmd.addAuth(v.Username, v.Password, true)
+	cmd.Username = v.Username
+	cmd.Password = v.Password
 	cmd.Command = "Login"
 
 	// read welcome message (Only Important when we first open a connection and login)
@@ -267,7 +275,12 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 
 	log.L.Infof("Logging in...")
 	log.L.Debugf("Username: %s", v.Username)
-	err = cmd.writeCommand(conn)
+	b, err := xml.Marshal(cmd)
+	if err != nil {
+		return err
+	}
+	err = conn.Write(b)
+	//err = cmd.writeCommand(conn)
 	if err != nil {
 		return err
 	}
@@ -302,7 +315,7 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 }
 
 // TODO remove
-func (c *Command) writeCommand(conn *net.TCPConn) error {
+/*func (c *Command) writeCommand(conn *net.TCPConn) error {
 	b, err := xml.Marshal(c)
 	if err != nil {
 		return err
@@ -310,17 +323,18 @@ func (c *Command) writeCommand(conn *net.TCPConn) error {
 
 	return conn.Write(b)
 }
-
+*/
 // AddAuth adds auth onto the command
 // TODO remove
 // changed: Made function Public
+/*
 func (c *Command) addAuth(viaUser string, viaPass string, password bool) {
 	c.Username = viaUser
 	if password {
 		c.Password = viaPass
 	}
 }
-
+*/
 func getConnection(address string) (*net.TCPConn, error) {
 	radder, err := net.ResolveTCPAddr("tcp", address+":9982")
 	if err != nil {
