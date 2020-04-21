@@ -1,4 +1,4 @@
-package via
+package kramer
 
 import (
 	"time"
@@ -17,6 +17,24 @@ func (f optionFunc) apply(o *options) {
 
 type Option interface {
 	apply(*options)
+}
+
+// command: Struct used to build the XML commands that need to be sent to the VIA
+type command struct {
+	XMLName  xml.Name `xml:"P"`
+	Username string   `xml:"UN"`
+	Password string   `xml:"Pwd"`
+	Command  string   `xml:"Cmd"`
+	Param1   string   `xml:"P1,omitempty"`
+	Param2   string   `xml:"P2,omitempty"`
+	Param3   string   `xml:"P3,omitempty"`
+	Param4   string   `xml:"P4,omitempty"`
+	Param5   string   `xml:"P5,omitempty"`
+	Param6   string   `xml:"P6,omitempty"`
+	Param7   string   `xml:"P7,omitempty"`
+	Param8   string   `xml:"P8,omitempty"`
+	Param9   string   `xml:"P9,omitempty"`
+	Param10  string   `xml:"P10,omitempty"`
 }
 
 // HardwareInfo contains the common information for device hardware information
