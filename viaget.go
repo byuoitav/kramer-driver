@@ -1,4 +1,4 @@
-package via
+package kramer
 
 import (
 	"context"
@@ -17,8 +17,39 @@ const (
 	Waiting  = "2"
 )
 
-// IsConnected checks the status of the VIA connection
-func (v *VIA) IsConnected(ctx context.Context) bool {
+func (v *Via) GetVolume(ctx context.Context) (int, error) {
+	var cmd command
+	cmd.Command = "Vol"
+	cmd.Param1 = "Get"
+
+	log.L.Infof("Sending command to get VIA Volume to %s", v.Address)
+	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
+	// I am still checking for errors just in case something else fails during execution
+	vollevel, err := v.SendCommand(ctx, command)
+	if err != nil {
+
+	}
+
+	return v.volumeParse(vollevel)
+}
+
+// volumeParse parser to pull out the volume level from the VIA API returned string
+func (v *Via) volumeParse(vollevel string) (int, error) {
+	re := regexp.MustCompile("[0-9]+")
+	vol := re.FindString(vollevel)
+
+	vfin, err := strconv.Atoi(vol)
+	if err != nil {
+		err = fmt.Errorf("Error converting response: %s", err.Error())
+		log.L.Infof("%s", err.Error())
+		return 0, err
+	}
+
+	return vfin, nil
+}
+
+// isConnected checks the status of the VIA connection
+func (v *VIA) isConnected(ctx context.Context) bool {
 	connected := false
 
 	log.L.Infof("Getting connected status of %s", v.Address)
