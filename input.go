@@ -11,8 +11,14 @@ import (
 	"github.com/fatih/color"
 )
 
+func logError(e string) {
+	color.Set(color.FgRed)
+	log.L.Infof("%s", e)
+	color.Unset()
+}
+
 // GetInput returns the current input
-func (vs *VideoSwitcher) GetInputByOutput(ctx context.Context, output string) (string, error) {
+func (vs *Kramer4x4) GetInputByOutput(ctx context.Context, output string) (string, error) {
 
 	p, err := ToIndexOne(output)
 	if err != nil || LessThanZero(output) {
@@ -55,7 +61,7 @@ func (vs *VideoSwitcher) GetInputByOutput(ctx context.Context, output string) (s
 }
 
 // SwitchInput changes the input on the given output to input
-func (vs *VideoSwitcher) SetInputByOutput(ctx context.Context, output, input string) error {
+func (vs *Kramer4x4) SetInputByOutput(ctx context.Context, output, input string) error {
 	i, err := ToIndexOne(input)
 	if err != nil || LessThanZero(input) {
 		return fmt.Errorf("Error! Input parameter %s is not valid!", input)
@@ -95,4 +101,77 @@ func ToIndexZero(numString string) (string, error) {
 	num--
 
 	return strconv.Itoa(num), nil
+}
+
+// GetInput returns the current input
+func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (string, error) {
+
+	p, err := ToIndexOne(output)
+	if err != nil || LessThanZero(output) {
+		return "", fmt.Errorf("Error! Port parameter must be zero or greater")
+	}
+
+	log.L.Debugf("Getting input for output port %s", output)
+	log.L.Debugf("Changing to 1-based indexing... (+1 to each port number)")
+
+	cmd := []byte(fmt.Sprintf("#ROUTE? 1,%s\r\n", p))
+	resp, err := vsdsp.SendCommand(ctx, cmd)
+	if err != nil {
+		logError(err.Error())
+		return "", fmt.Errorf("error sending command: %w", err)
+	}
+
+	resps := string(resp)
+	if strings.Contains(resps, "ERR") {
+		return "", fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resps)
+	}
+
+	parts := strings.Split(resps, ",")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resps)
+	}
+
+	var i status.Input
+	parts[2] = strings.Trim(parts[2], "\r\n")
+	i.Input = parts[2]
+
+	log.L.Debugf("Changing to 0-based indexing... (-1 to each port number)")
+	i.Input, err = ToIndexZero(i.Input)
+	if err != nil {
+		return "", fmt.Errorf("unable to switch to index zero: %w", err)
+	}
+
+	log.L.Debugf("Input for output port %s is %v", output, i.Input)
+	return i.Input, nil
+}
+
+// SwitchInput changes the input on the given output to input
+func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input string) error {
+	i, err := ToIndexOne(input)
+	if err != nil || LessThanZero(input) {
+		return fmt.Errorf("Error! Input parameter %s is not valid!", input)
+	}
+
+	o, err := ToIndexOne(output)
+	if err != nil || LessThanZero(output) {
+		return fmt.Errorf("Error! Output parameter must be zero or greater")
+	}
+
+	log.L.Debugf("Routing %v to %v on %v", input, output, vsdsp.Address)
+	log.L.Debugf("Changing to 1-based indexing... (+1 to each port number)")
+
+	cmd := []byte(fmt.Sprintf("#ROUTE 1,%s,%s\r\n", o, i))
+
+	resp, err := vsdsp.SendCommand(ctx, cmd)
+	if err != nil {
+		logError(err.Error())
+		return fmt.Errorf("unable to send command: %w", err)
+	}
+
+	resps := string(resp)
+	if strings.Contains(resps, "ERR") {
+		return fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resp)
+	}
+
+	return nil
 }

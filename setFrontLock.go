@@ -8,7 +8,7 @@ import (
 	"github.com/byuoitav/common/log"
 )
 
-func (vs *VideoSwitcher) SetFrontLock(ctx context.Context, state bool) error {
+func (vs *Kramer4x4) SetFrontLock(ctx context.Context, state bool) error {
 	log.L.Debugf("Setting front button lock status to %v", state)
 
 	var num int8

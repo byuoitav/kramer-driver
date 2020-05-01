@@ -9,32 +9,33 @@ import (
 	"github.com/byuoitav/connpool"
 )
 
-type Kramer4x4 struct {
+type KramerAFM20DSP struct {
 	Address string
 	Log     Logger
 
 	pool *connpool.Pool
 }
 
-var (
-	_defaultTTL   = 30 * time.Second
-	_defaultDelay = 500 * time.Millisecond
-)
+// var (
+// 	_defaultTTL   = 30 * time.Second
+// 	_defaultDelay = 500 * time.Millisecond
+// )
 
-type Kramer4x4options struct {
+type KramerAFM20DSPoptions struct {
 	ttl    time.Duration
 	delay  time.Duration
 	logger Logger
 }
 
-type Kramer4x4Option interface {
-	apply(*Kramer4x4options)
+// TODO add specific options for each model
+type KramerAFM20DSPOption interface {
+	apply(*KramerAFM20DSPoptions)
 }
 
-type Kramer4x4optionFunc func(*Kramer4x4options)
+type KramerAFM20DSPoptionFunc func(*KramerAFM20DSPoptions)
 
-func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
-	options := Kramer4x4options{
+func NewDsp(addr string, opts ...KramerAFM20DSPOption) *KramerAFM20DSP {
+	options := KramerAFM20DSPoptions{
 		ttl:   _defaultTTL,
 		delay: _defaultDelay,
 	}
@@ -43,7 +44,7 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 		o.apply(&options)
 	}
 
-	vs := &Kramer4x4{
+	dsp := &KramerAFM20DSP{
 		Address: addr,
 		pool: &connpool.Pool{
 			TTL:    options.ttl,
@@ -52,9 +53,9 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 		},
 	}
 
-	vs.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
+	dsp.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
 		d := net.Dialer{}
-		conn, err := d.DialContext(ctx, "tcp", vs.Address+":5000")
+		conn, err := d.DialContext(ctx, "tcp", dsp.Address+":5000")
 		if err != nil {
 			return nil, fmt.Errorf("unable to open connection: %w", err)
 		}
@@ -68,14 +69,14 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 		return conn, nil
 	}
 
-	return vs
+	return dsp
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (vs *Kramer4x4) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (dsp *KramerAFM20DSP) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
 	var resp []byte
 
-	err := vs.pool.Do(ctx, func(conn connpool.Conn) error {
+	err := dsp.pool.Do(ctx, func(conn connpool.Conn) error {
 		_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 
 		n, err := conn.Write(cmd)

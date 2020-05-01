@@ -45,7 +45,7 @@ type CommandInfo struct {
 	ReadWelcome     bool
 }
 
-func (vs *VideoSwitcher) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
+func (vs *Kramer4x4) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
 	var cmd []byte
 
 	if len(param) > 0 {
@@ -68,7 +68,7 @@ func (vs *VideoSwitcher) hardwareCommand(ctx context.Context, commandType, param
 	return resps, nil
 }
 
-func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
+func (vs *Kramer4x4) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
 	var toReturn structs.HardwareInfo
 	// get the hostname
 	addr, e := net.LookupAddr(vs.Address)
@@ -134,6 +134,208 @@ func (vs *VideoSwitcher) GetHardwareInfo(ctx context.Context) (structs.HardwareI
 	mac, err := vs.hardwareCommand(ctx, MACAddress, "")
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get the MAC address from %s", vs.Address)
+	}
+
+	// set network information
+	toReturn.NetworkInfo = structs.NetworkInfo{
+		IPAddress:  ipAddress,
+		MACAddress: mac,
+		Gateway:    gateway,
+	}
+
+	return toReturn, nil
+}
+
+func (dsp *KramerAFM20DSP) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
+	var cmd []byte
+
+	if len(param) > 0 {
+		num, _ := strconv.Atoi(param)
+		cmd = []byte(fmt.Sprintf("#%s? %d\r\n", commandType, num))
+	} else {
+		cmd = []byte(fmt.Sprintf("#%s?\r\n", commandType))
+	}
+
+	resp, err := dsp.SendCommand(ctx, cmd)
+
+	if err != nil {
+		return "", fmt.Errorf("unable to send command: %w", err)
+	}
+	resps := string(resp)
+	resps = strings.Split(resps, fmt.Sprintf("%s", commandType))[1]
+	resps = strings.Trim(resps, "\r\n")
+	resps = strings.TrimSpace(resps)
+
+	return resps, nil
+}
+
+func (dsp *KramerAFM20DSP) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
+	var toReturn structs.HardwareInfo
+	// get the hostname
+	addr, e := net.LookupAddr(dsp.Address)
+	if e != nil {
+		toReturn.Hostname = dsp.Address
+	} else {
+		toReturn.Hostname = strings.Trim(addr[0], ".")
+	}
+
+	// get build date
+	buildDate, err := dsp.hardwareCommand(ctx, BuildDate, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get build date from %s", dsp.Address)
+	}
+
+	toReturn.BuildDate = buildDate
+
+	// get device model
+	model, err := dsp.hardwareCommand(ctx, Model, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get model number from %s", dsp.Address)
+	}
+
+	toReturn.ModelName = model
+
+	// get device protocol version
+	protocol, err := dsp.hardwareCommand(ctx, ProtocolVersion, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get protocol version from %s", dsp.Address)
+	}
+
+	toReturn.ProtocolVersion = strings.Trim(protocol, "3000:")
+
+	// get firmware version
+	firmware, err := dsp.hardwareCommand(ctx, FirmwareVersion, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get firmware version from %s", dsp.Address)
+	}
+
+	toReturn.FirmwareVersion = firmware
+
+	// get serial number
+	serial, err := dsp.hardwareCommand(ctx, SerialNumber, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get serial number from %s", dsp.Address)
+	}
+
+	toReturn.SerialNumber = serial
+
+	// get IP address
+	ipAddress, err := dsp.hardwareCommand(ctx, IPAddress, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get IP address from %s... ironic...", dsp.Address)
+	}
+
+	// get gateway
+	gateway, err := dsp.hardwareCommand(ctx, Gateway, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get the gateway address from %s", dsp.Address)
+	}
+
+	// get MAC address
+	mac, err := dsp.hardwareCommand(ctx, MACAddress, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get the MAC address from %s", dsp.Address)
+	}
+
+	// set network information
+	toReturn.NetworkInfo = structs.NetworkInfo{
+		IPAddress:  ipAddress,
+		MACAddress: mac,
+		Gateway:    gateway,
+	}
+
+	return toReturn, nil
+}
+
+func (dsp *KramerVP558) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
+	var cmd []byte
+
+	if len(param) > 0 {
+		num, _ := strconv.Atoi(param)
+		cmd = []byte(fmt.Sprintf("#%s? %d\r\n", commandType, num))
+	} else {
+		cmd = []byte(fmt.Sprintf("#%s?\r\n", commandType))
+	}
+
+	resp, err := dsp.SendCommand(ctx, cmd)
+
+	if err != nil {
+		return "", fmt.Errorf("unable to send command: %w", err)
+	}
+	resps := string(resp)
+	resps = strings.Split(resps, fmt.Sprintf("%s", commandType))[1]
+	resps = strings.Trim(resps, "\r\n")
+	resps = strings.TrimSpace(resps)
+
+	return resps, nil
+}
+
+func (dsp *KramerVP558) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
+	var toReturn structs.HardwareInfo
+	// get the hostname
+	addr, e := net.LookupAddr(dsp.Address)
+	if e != nil {
+		toReturn.Hostname = dsp.Address
+	} else {
+		toReturn.Hostname = strings.Trim(addr[0], ".")
+	}
+
+	// get build date
+	buildDate, err := dsp.hardwareCommand(ctx, BuildDate, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get build date from %s", dsp.Address)
+	}
+
+	toReturn.BuildDate = buildDate
+
+	// get device model
+	model, err := dsp.hardwareCommand(ctx, Model, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get model number from %s", dsp.Address)
+	}
+
+	toReturn.ModelName = model
+
+	// get device protocol version
+	protocol, err := dsp.hardwareCommand(ctx, ProtocolVersion, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get protocol version from %s", dsp.Address)
+	}
+
+	toReturn.ProtocolVersion = strings.Trim(protocol, "3000:")
+
+	// get firmware version
+	firmware, err := dsp.hardwareCommand(ctx, FirmwareVersion, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get firmware version from %s", dsp.Address)
+	}
+
+	toReturn.FirmwareVersion = firmware
+
+	// get serial number
+	serial, err := dsp.hardwareCommand(ctx, SerialNumber, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get serial number from %s", dsp.Address)
+	}
+
+	toReturn.SerialNumber = serial
+
+	// get IP address
+	ipAddress, err := dsp.hardwareCommand(ctx, IPAddress, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get IP address from %s... ironic...", dsp.Address)
+	}
+
+	// get gateway
+	gateway, err := dsp.hardwareCommand(ctx, Gateway, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get the gateway address from %s", dsp.Address)
+	}
+
+	// get MAC address
+	mac, err := dsp.hardwareCommand(ctx, MACAddress, "")
+	if err != nil {
+		return toReturn, fmt.Errorf("failed to get the MAC address from %s", dsp.Address)
 	}
 
 	// set network information
