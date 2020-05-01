@@ -9,7 +9,7 @@ import (
 	"github.com/byuoitav/connpool"
 )
 
-type Dsp struct {
+type KramerAFM20DSP struct {
 	Address string
 	Log     Logger
 
@@ -21,21 +21,21 @@ type Dsp struct {
 // 	_defaultDelay = 500 * time.Millisecond
 // )
 
-// type options struct {
-// 	ttl    time.Duration
-// 	delay  time.Duration
-// 	logger Logger
-// }
+type KramerAFM20DSPoptions struct {
+	ttl    time.Duration
+	delay  time.Duration
+	logger Logger
+}
 
-//TODO add specific options for each model
-// type Option interface {
-// 	apply(*options)
-// }
+// TODO add specific options for each model
+type KramerAFM20DSPOption interface {
+	apply(*KramerAFM20DSPoptions)
+}
 
-// type optionFunc func(*options)
+type KramerAFM20DSPoptionFunc func(*KramerAFM20DSPoptions)
 
-func NewDsp(addr string, opts ...Option) *Dsp {
-	options := options{
+func NewDsp(addr string, opts ...KramerAFM20DSPOption) *KramerAFM20DSP {
+	options := KramerAFM20DSPoptions{
 		ttl:   _defaultTTL,
 		delay: _defaultDelay,
 	}
@@ -44,7 +44,7 @@ func NewDsp(addr string, opts ...Option) *Dsp {
 		o.apply(&options)
 	}
 
-	dsp := &Dsp{
+	dsp := &KramerAFM20DSP{
 		Address: addr,
 		pool: &connpool.Pool{
 			TTL:    options.ttl,
@@ -73,7 +73,7 @@ func NewDsp(addr string, opts ...Option) *Dsp {
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (dsp *Dsp) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (dsp *KramerAFM20DSP) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
 	var resp []byte
 
 	err := dsp.pool.Do(ctx, func(conn connpool.Conn) error {

@@ -7,7 +7,7 @@ import (
 )
 
 // GetMuted returns the Mute Status current input
-func (dsp *Dsp) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
+func (dsp *KramerAFM20DSP) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
 
 	fmt.Println(block)
 	cmd := []byte(fmt.Sprintf("#X-MUTE? OUT.ANALOG_AUDIO.%s.AUDIO.1\r\n", block))
@@ -33,7 +33,7 @@ func (dsp *Dsp) GetMutedByBlock(ctx context.Context, block string) (bool, error)
 }
 
 // SetMuted changes the input on the given output to input
-func (dsp *Dsp) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
+func (dsp *KramerAFM20DSP) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
 
 	var cmd []byte
 	if muted {
@@ -56,7 +56,7 @@ func (dsp *Dsp) SetMutedByBlock(ctx context.Context, block string, muted bool) e
 }
 
 // GetMuted returns the Mute Status current input
-func (vsdsp *VideoSwitcherDsp) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
+func (vsdsp *KramerVP558) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
 
 	fmt.Println(block)
 	cmd := []byte(fmt.Sprintf("#MUTE? %s\r\n", block))
@@ -81,7 +81,7 @@ func (vsdsp *VideoSwitcherDsp) GetMutedByBlock(ctx context.Context, block string
 }
 
 // setMuted changes the input on the given output to input
-func (vsdsp *VideoSwitcherDsp) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
+func (vsdsp *KramerVP558) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
 
 	var cmd []byte
 	if muted {

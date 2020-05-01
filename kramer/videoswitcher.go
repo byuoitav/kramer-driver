@@ -9,7 +9,7 @@ import (
 	"github.com/byuoitav/connpool"
 )
 
-type VideoSwitcher struct {
+type Kramer4x4 struct {
 	Address string
 	Log     Logger
 
@@ -21,20 +21,20 @@ var (
 	_defaultDelay = 500 * time.Millisecond
 )
 
-type options struct {
+type Kramer4x4options struct {
 	ttl    time.Duration
 	delay  time.Duration
 	logger Logger
 }
 
-type Option interface {
-	apply(*options)
+type Kramer4x4Option interface {
+	apply(*Kramer4x4options)
 }
 
-type optionFunc func(*options)
+type Kramer4x4optionFunc func(*Kramer4x4options)
 
-func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
-	options := options{
+func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
+	options := Kramer4x4options{
 		ttl:   _defaultTTL,
 		delay: _defaultDelay,
 	}
@@ -43,7 +43,7 @@ func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
 		o.apply(&options)
 	}
 
-	vs := &VideoSwitcher{
+	vs := &Kramer4x4{
 		Address: addr,
 		pool: &connpool.Pool{
 			TTL:    options.ttl,
@@ -72,7 +72,7 @@ func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (vs *VideoSwitcher) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (vs *Kramer4x4) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
 	var resp []byte
 
 	err := vs.pool.Do(ctx, func(conn connpool.Conn) error {

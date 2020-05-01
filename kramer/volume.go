@@ -15,7 +15,7 @@ const (
 )
 
 // GetVolume returns the volume Level for the given input
-func (dsp *Dsp) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
+func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 
 	cmd := []byte(fmt.Sprintf("#X-AUD-LVL? OUT.ANALOG_AUDIO.%s.AUDIO.1\r\n", block))
 	resp, err := dsp.SendCommand(ctx, cmd)
@@ -44,7 +44,7 @@ func (dsp *Dsp) GetVolumeByBlock(ctx context.Context, block string) (int, error)
 }
 
 // SetVolume changes the volume level on the given block to the level parameter
-func (dsp *Dsp) SetVolumeByBlock(ctx context.Context, block string, level int) error {
+func (dsp *KramerAFM20DSP) SetVolumeByBlock(ctx context.Context, block string, level int) error {
 	volumeLevel := convertToDB(level)
 	var cmd []byte
 	cmd = []byte(fmt.Sprintf("#X-AUD-LVL OUT.ANALOG_AUDIO.%s.AUDIO.1, %v\r", block, volumeLevel))
@@ -80,7 +80,7 @@ func convertBackToVolume(level int) int {
 }
 
 // GetVolume returns the volume Level for the given input
-func (vsdsp *VideoSwitcherDsp) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
+func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 
 	cmd := []byte(fmt.Sprintf("#AUD-LVL? 1,%s\r\n", block))
 	resp, err := vsdsp.SendCommand(ctx, cmd)
@@ -109,7 +109,7 @@ func (vsdsp *VideoSwitcherDsp) GetVolumeByBlock(ctx context.Context, block strin
 }
 
 // SetVolume changes the volume level on the given block to the level parameter
-func (vsdsp *VideoSwitcherDsp) SetVolumeByBlock(ctx context.Context, block string, level int) error {
+func (vsdsp *KramerVP558) SetVolumeByBlock(ctx context.Context, block string, level int) error {
 	var cmd []byte
 	cmd = []byte(fmt.Sprintf("#AUD-LVL 1,%s,%v\r", block, level))
 

@@ -18,7 +18,7 @@ func logError(e string) {
 }
 
 // GetInput returns the current input
-func (vs *VideoSwitcher) GetInputByOutput(ctx context.Context, output string) (string, error) {
+func (vs *Kramer4x4) GetInputByOutput(ctx context.Context, output string) (string, error) {
 
 	p, err := ToIndexOne(output)
 	if err != nil || LessThanZero(output) {
@@ -61,7 +61,7 @@ func (vs *VideoSwitcher) GetInputByOutput(ctx context.Context, output string) (s
 }
 
 // SwitchInput changes the input on the given output to input
-func (vs *VideoSwitcher) SetInputByOutput(ctx context.Context, output, input string) error {
+func (vs *Kramer4x4) SetInputByOutput(ctx context.Context, output, input string) error {
 	i, err := ToIndexOne(input)
 	if err != nil || LessThanZero(input) {
 		return fmt.Errorf("Error! Input parameter %s is not valid!", input)
@@ -104,7 +104,7 @@ func ToIndexZero(numString string) (string, error) {
 }
 
 // GetInput returns the current input
-func (vsdsp *VideoSwitcherDsp) GetInputByOutput(ctx context.Context, output string) (string, error) {
+func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (string, error) {
 
 	p, err := ToIndexOne(output)
 	if err != nil || LessThanZero(output) {
@@ -146,7 +146,7 @@ func (vsdsp *VideoSwitcherDsp) GetInputByOutput(ctx context.Context, output stri
 }
 
 // SwitchInput changes the input on the given output to input
-func (vsdsp *VideoSwitcherDsp) SetInputByOutput(ctx context.Context, output, input string) error {
+func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input string) error {
 	i, err := ToIndexOne(input)
 	if err != nil || LessThanZero(input) {
 		return fmt.Errorf("Error! Input parameter %s is not valid!", input)

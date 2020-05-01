@@ -9,7 +9,7 @@ import (
 	"github.com/byuoitav/connpool"
 )
 
-type VideoSwitcherDsp struct {
+type KramerVP558 struct {
 	Address string
 	Log     Logger
 
@@ -21,20 +21,20 @@ type VideoSwitcherDsp struct {
 // 	_defaultDelay = 500 * time.Millisecond
 // )
 
-// type options struct {
-// 	ttl    time.Duration
-// 	delay  time.Duration
-// 	logger Logger
-// }
+type KramerVP558options struct {
+	ttl    time.Duration
+	delay  time.Duration
+	logger Logger
+}
 
-// type Option interface {
-// 	apply(*options)
-// }
+type KramerVP558Option interface {
+	apply(*KramerVP558options)
+}
 
-// type optionFunc func(*options)
+type KramerVP558optionFunc func(*KramerVP558options)
 
-func NewVideoSwitcherDsp(addr string, opts ...Option) *VideoSwitcherDsp {
-	options := options{
+func NewVideoSwitcherDsp(addr string, opts ...KramerVP558Option) *KramerVP558 {
+	options := KramerVP558options{
 		ttl:   _defaultTTL,
 		delay: _defaultDelay,
 	}
@@ -43,7 +43,7 @@ func NewVideoSwitcherDsp(addr string, opts ...Option) *VideoSwitcherDsp {
 		o.apply(&options)
 	}
 
-	vsdsp := &VideoSwitcherDsp{
+	vsdsp := &KramerVP558{
 		Address: addr,
 		pool: &connpool.Pool{
 			TTL:    options.ttl,
@@ -72,7 +72,7 @@ func NewVideoSwitcherDsp(addr string, opts ...Option) *VideoSwitcherDsp {
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (vsdsp *VideoSwitcherDsp) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
 	var resp []byte
 
 	err := vsdsp.pool.Do(ctx, func(conn connpool.Conn) error {
