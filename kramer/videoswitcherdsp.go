@@ -9,31 +9,31 @@ import (
 	"github.com/byuoitav/connpool"
 )
 
-type VideoSwitcher struct {
+type VideoSwitcherDsp struct {
 	Address string
 	Log     Logger
 
 	pool *connpool.Pool
 }
 
-var (
-	_defaultTTL   = 30 * time.Second
-	_defaultDelay = 500 * time.Millisecond
-)
+// var (
+// 	_defaultTTL   = 30 * time.Second
+// 	_defaultDelay = 500 * time.Millisecond
+// )
 
-type options struct {
-	ttl    time.Duration
-	delay  time.Duration
-	logger Logger
-}
+// type options struct {
+// 	ttl    time.Duration
+// 	delay  time.Duration
+// 	logger Logger
+// }
 
-type Option interface {
-	apply(*options)
-}
+// type Option interface {
+// 	apply(*options)
+// }
 
-type optionFunc func(*options)
+// type optionFunc func(*options)
 
-func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
+func NewVideoSwitcherDsp(addr string, opts ...Option) *VideoSwitcherDsp {
 	options := options{
 		ttl:   _defaultTTL,
 		delay: _defaultDelay,
@@ -43,7 +43,7 @@ func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
 		o.apply(&options)
 	}
 
-	vs := &VideoSwitcher{
+	vsdsp := &VideoSwitcherDsp{
 		Address: addr,
 		pool: &connpool.Pool{
 			TTL:    options.ttl,
@@ -52,9 +52,9 @@ func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
 		},
 	}
 
-	vs.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
+	vsdsp.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
 		d := net.Dialer{}
-		conn, err := d.DialContext(ctx, "tcp", vs.Address+":5000")
+		conn, err := d.DialContext(ctx, "tcp", vsdsp.Address+":5000")
 		if err != nil {
 			return nil, fmt.Errorf("unable to open connection: %w", err)
 		}
@@ -68,22 +68,15 @@ func NewVideoSwitcher(addr string, opts ...Option) *VideoSwitcher {
 		return conn, nil
 	}
 
-	return vs
+	return vsdsp
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (vs *VideoSwitcher) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (vsdsp *VideoSwitcherDsp) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
 	var resp []byte
 
-	// command = strings.Replace(command, " ", string(SPACE), -1)
-	// color.Set(color.FgMagenta)
-	// log.L.Infof("Sending command %s", command)
-	// color.Unset()
-	// command += string(CARRIAGE_RETURN) + string(LINE_FEED)
-	// conn.Write([]byte(command))
-
-	err := vs.pool.Do(ctx, func(conn connpool.Conn) error {
-		_ = conn.SetWriteDeadline(time.Now().Add(3 * time.Second))
+	err := vsdsp.pool.Do(ctx, func(conn connpool.Conn) error {
+		_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 
 		n, err := conn.Write(cmd)
 		switch {
