@@ -104,6 +104,8 @@ func ToIndexZero(numString string) (string, error) {
 }
 
 // GetInput returns the current input
+// The API is zero indexed, so outputs 0-3 correspond with outputs 1-4 on device
+// inputs 0-10 correspond with outputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
 func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (string, error) {
 
 	p, err := ToIndexOne(output)
@@ -146,6 +148,8 @@ func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (
 }
 
 // SwitchInput changes the input on the given output to input
+// The API is zero indexed, so outputs 0-3 correspond with outputs 1-4 on device
+// inputs 0-10 correspond with outputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
 func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input string) error {
 	i, err := ToIndexOne(input)
 	if err != nil || LessThanZero(input) {

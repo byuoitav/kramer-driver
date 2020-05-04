@@ -56,6 +56,8 @@ func (dsp *KramerAFM20DSP) SetMutedByBlock(ctx context.Context, block string, mu
 }
 
 // GetMuted returns the Mute Status current input
+// Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
+// for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
 
 	fmt.Println(block)
@@ -81,6 +83,8 @@ func (vsdsp *KramerVP558) GetMutedByBlock(ctx context.Context, block string) (bo
 }
 
 // setMuted changes the input on the given output to input
+// Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
+// for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
 
 	var cmd []byte

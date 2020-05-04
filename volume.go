@@ -63,6 +63,7 @@ func (dsp *KramerAFM20DSP) SetVolumeByBlock(ctx context.Context, block string, l
 	return nil
 }
 
+//converts a volume level 0-100 to the db range between -100 and 15 db
 func convertToDB(level int) int {
 	volumeToDB := float64(volumeRange) / float64(100)
 	convertedValue := int(math.Round(float64(volumeToDB * float64(level))))
@@ -71,6 +72,7 @@ func convertToDB(level int) int {
 	return convertedValue
 }
 
+//converts the db level of the device to 0-100 volume range
 func convertBackToVolume(level int) int {
 
 	dbToVolume := float64(100) / float64(volumeRange)
@@ -80,6 +82,8 @@ func convertBackToVolume(level int) int {
 }
 
 // GetVolume returns the volume Level for the given input
+// Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
+// for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 
 	cmd := []byte(fmt.Sprintf("#AUD-LVL? 1,%s\r\n", block))
@@ -93,22 +97,20 @@ func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (i
 	if strings.Contains(resps, "ERR") {
 		return 0, fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
-	fmt.Println(resps)
 	parts := strings.Split(resps, ",")
+	parts[2] = strings.Trim(parts[2], "\r\n")
 
-	dbParts := strings.Split(parts[1], ".")
-
-	currentDB, err := strconv.Atoi(dbParts[0])
+	volume, err := strconv.Atoi(parts[2])
 	if err != nil {
 		return 0, err
 	}
-
-	volume := convertBackToVolume(currentDB)
 
 	return volume, nil
 }
 
 // SetVolume changes the volume level on the given block to the level parameter
+// Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
+// for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) SetVolumeByBlock(ctx context.Context, block string, level int) error {
 	var cmd []byte
 	cmd = []byte(fmt.Sprintf("#AUD-LVL 1,%s,%v\r", block, level))
