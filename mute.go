@@ -7,6 +7,7 @@ import (
 )
 
 // GetMuted returns the Mute Status current input
+// The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
 
 	fmt.Println(block)
@@ -33,6 +34,7 @@ func (dsp *KramerAFM20DSP) GetMutedByBlock(ctx context.Context, block string) (b
 }
 
 // SetMuted changes the input on the given output to input
+// The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
 
 	var cmd []byte

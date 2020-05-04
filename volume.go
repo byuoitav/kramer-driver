@@ -15,6 +15,7 @@ const (
 )
 
 // GetVolume returns the volume Level for the given input
+// The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 
 	cmd := []byte(fmt.Sprintf("#X-AUD-LVL? OUT.ANALOG_AUDIO.%s.AUDIO.1\r\n", block))
@@ -44,6 +45,7 @@ func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (
 }
 
 // SetVolume changes the volume level on the given block to the level parameter
+// The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) SetVolumeByBlock(ctx context.Context, block string, level int) error {
 	volumeLevel := convertToDB(level)
 	var cmd []byte
