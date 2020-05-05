@@ -10,7 +10,6 @@ import (
 // The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
 
-	fmt.Println(block)
 	cmd := []byte(fmt.Sprintf("#X-MUTE? OUT.ANALOG_AUDIO.%s.AUDIO.1\r\n", block))
 	resp, err := dsp.SendCommand(ctx, cmd)
 	if err != nil {
@@ -22,11 +21,11 @@ func (dsp *KramerAFM20DSP) GetMutedByBlock(ctx context.Context, block string) (b
 	if strings.Contains(resps, "ERR") {
 		return false, fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
+	resps = strings.TrimSpace(resps)
 
 	parts := strings.Split(resps, ",")
-	resps = strings.TrimSpace(parts[1])
 
-	if resps == "OFF" {
+	if parts[1] == "OFF" {
 		return false, nil
 	} else {
 		return true, nil
@@ -61,8 +60,7 @@ func (dsp *KramerAFM20DSP) SetMutedByBlock(ctx context.Context, block string, mu
 // Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
 // for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
-
-	fmt.Println(block)
+	vsdsp.Log.Infof("getting mute status for block")
 	cmd := []byte(fmt.Sprintf("#MUTE? %s\r\n", block))
 	resp, err := vsdsp.SendCommand(ctx, cmd)
 	if err != nil {
@@ -74,10 +72,11 @@ func (vsdsp *KramerVP558) GetMutedByBlock(ctx context.Context, block string) (bo
 	if strings.Contains(resps, "ERR") {
 		return false, fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
-	parts := strings.Split(resps, ",")
-	resps = strings.TrimSpace(parts[1])
+	resps = strings.TrimSpace(resps)
 
-	if resps == "0" {
+	parts := strings.Split(resps, ",")
+
+	if parts[1] == "0" {
 		return false, nil
 	} else {
 		return true, nil

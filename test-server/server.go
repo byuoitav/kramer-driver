@@ -22,7 +22,7 @@
 // 	write := router.Group("", auth.AuthorizeRequest("write-state", "room", auth.LookupResourceFromAddress))
 // 	write.GET("/:address/block/:block/volume/:level", func(ctx echo.Context) error {
 // 		address := ctx.Param("address")
-// 		vsdsp := kramer.NewVideoSwitcherDsp(address)
+// 		vsdsp := kramer.NewDsp(address)
 // 		block := ctx.Param("block")
 
 // 		level := ctx.Param("level")
@@ -40,7 +40,7 @@
 // 	})
 // 	write.GET("/:address/block/:block/muted/true", func(ctx echo.Context) error {
 // 		address := ctx.Param("address")
-// 		vsdsp := kramer.NewVideoSwitcherDsp(address)
+// 		vsdsp := kramer.NewDsp(address)
 // 		block := ctx.Param("block")
 // 		c := ctx.Request().Context()
 // 		err := vsdsp.SetMutedByBlock(c, block, true)
@@ -52,7 +52,7 @@
 // 	})
 // 	write.GET("/:address/block/:block/muted/false", func(ctx echo.Context) error {
 // 		address := ctx.Param("address")
-// 		vsdsp := kramer.NewVideoSwitcherDsp(address)
+// 		vsdsp := kramer.NewDsp(address)
 // 		block := ctx.Param("block")
 
 // 		c := ctx.Request().Context()
@@ -68,7 +68,7 @@
 
 // 	read.GET("/:address/block/:block/volume", func(ctx echo.Context) error {
 // 		address := ctx.Param("address")
-// 		vsdsp := kramer.NewVideoSwitcherDsp(address)
+// 		vsdsp := kramer.NewDsp(address)
 // 		block := ctx.Param("block")
 
 // 		c := ctx.Request().Context()
@@ -82,7 +82,7 @@
 // 	})
 // 	read.GET("/:address/block/:block/muted", func(ctx echo.Context) error {
 // 		address := ctx.Param("address")
-// 		vsdsp := kramer.NewVideoSwitcherDsp(address)
+// 		vsdsp := kramer.NewDsp(address)
 // 		block := ctx.Param("block")
 
 // 		c := ctx.Request().Context()

@@ -29,11 +29,11 @@ func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (
 	if strings.Contains(resps, "ERR") {
 		return 0, fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
-	fmt.Println(resps)
+	resps = strings.TrimSpace(resps)
+
 	parts := strings.Split(resps, ",")
 
 	dbParts := strings.Split(parts[1], ".")
-
 	currentDB, err := strconv.Atoi(dbParts[0])
 	if err != nil {
 		return 0, err
@@ -99,8 +99,8 @@ func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (i
 	if strings.Contains(resps, "ERR") {
 		return 0, fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
+	resps = strings.TrimSpace(resps)
 	parts := strings.Split(resps, ",")
-	parts[2] = strings.Trim(parts[2], "\r\n")
 
 	volume, err := strconv.Atoi(parts[2])
 	if err != nil {

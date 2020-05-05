@@ -127,6 +127,7 @@ func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (
 	if strings.Contains(resps, "ERR") {
 		return "", fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resps)
 	}
+	resps = strings.TrimSpace(resps)
 
 	parts := strings.Split(resps, ",")
 	if len(parts) != 3 {
@@ -134,7 +135,6 @@ func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (
 	}
 
 	var i status.Input
-	parts[2] = strings.Trim(parts[2], "\r\n")
 	i.Input = parts[2]
 
 	log.L.Debugf("Changing to 0-based indexing... (-1 to each port number)")
