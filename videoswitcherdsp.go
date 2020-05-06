@@ -72,7 +72,7 @@ func NewVideoSwitcherDsp(addr string, opts ...KramerVP558Option) *KramerVP558 {
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte, readAgain bool) ([]byte, error) {
 	var resp []byte
 
 	err := vsdsp.pool.Do(ctx, func(conn connpool.Conn) error {
@@ -89,6 +89,12 @@ func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte) ([]byte, 
 		resp, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
 		if err != nil {
 			return fmt.Errorf("unable to read response: %w", err)
+		}
+		if readAgain {
+			_, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
+			if err != nil {
+				return fmt.Errorf("unable to read response: %w", err)
+			}
 		}
 
 		return nil

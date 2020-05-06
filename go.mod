@@ -13,7 +13,7 @@ require (
 	github.com/labstack/echo v3.3.10+incompatible // indirect
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/sevenNt/echo-pprof v0.1.0 // indirect
-	go.uber.org/zap v1.13.0 // indirect
+	go.uber.org/zap v1.13.0
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ldap.v2 v2.5.1 // indirect
 )

@@ -9,6 +9,7 @@ import (
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/status"
 	"github.com/fatih/color"
+	"go.uber.org/zap"
 )
 
 func logError(e string) {
@@ -107,17 +108,12 @@ func ToIndexZero(numString string) (string, error) {
 // The API is zero indexed, so outputs 0-3 correspond with outputs 1-4 on device
 // inputs 0-10 correspond with outputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
 func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (string, error) {
-
-	p, err := ToIndexOne(output)
-	if err != nil || LessThanZero(output) {
-		return "", fmt.Errorf("Error! Port parameter must be zero or greater")
-	}
+	vsdsp.Log.Infof("sending getInput command", zap.String("output", output))
 
 	log.L.Debugf("Getting input for output port %s", output)
-	log.L.Debugf("Changing to 1-based indexing... (+1 to each port number)")
 
-	cmd := []byte(fmt.Sprintf("#ROUTE? 1,%s\r\n", p))
-	resp, err := vsdsp.SendCommand(ctx, cmd)
+	cmd := []byte(fmt.Sprintf("#ROUTE? 1,%s\r\n", output))
+	resp, err := vsdsp.SendCommand(ctx, cmd, false)
 	if err != nil {
 		logError(err.Error())
 		return "", fmt.Errorf("error sending command: %w", err)
@@ -137,36 +133,32 @@ func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (
 	var i status.Input
 	i.Input = parts[2]
 
-	log.L.Debugf("Changing to 0-based indexing... (-1 to each port number)")
-	i.Input, err = ToIndexZero(i.Input)
-	if err != nil {
-		return "", fmt.Errorf("unable to switch to index zero: %w", err)
-	}
-
-	log.L.Debugf("Input for output port %s is %v", output, i.Input)
+	vsdsp.Log.Infof("successfully got input", zap.String("output", output), zap.String("input", i.Input))
 	return i.Input, nil
 }
 
 // SwitchInput changes the input on the given output to input
-// The API is zero indexed, so outputs 0-3 correspond with outputs 1-4 on device
-// inputs 0-10 correspond with outputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
+// outputs 1-4 on device inputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
 func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input string) error {
-	i, err := ToIndexOne(input)
-	if err != nil || LessThanZero(input) {
-		return fmt.Errorf("Error! Input parameter %s is not valid!", input)
-	}
-
-	o, err := ToIndexOne(output)
-	if err != nil || LessThanZero(output) {
-		return fmt.Errorf("Error! Output parameter must be zero or greater")
-	}
 
 	log.L.Debugf("Routing %v to %v on %v", input, output, vsdsp.Address)
-	log.L.Debugf("Changing to 1-based indexing... (+1 to each port number)")
+	vsdsp.Log.Infof("sending setInput command", zap.String("output", output), zap.String("input", input))
 
-	cmd := []byte(fmt.Sprintf("#ROUTE 1,%s,%s\r\n", o, i))
+	cmd := []byte(fmt.Sprintf("#ROUTE 1,%s,%s\r\n", output, input))
 
-	resp, err := vsdsp.SendCommand(ctx, cmd)
+	//cheack to see if the current input is going to be changing
+	currentInput, err := vsdsp.GetInputByOutput(ctx, output)
+	if err != nil {
+		logError(err.Error())
+		return fmt.Errorf("error sending command: %w", err)
+	}
+	//if there is a change, two responses will be sent and both need to be read
+	readAgain := false
+	if currentInput != input {
+		readAgain = true
+	}
+
+	resp, err := vsdsp.SendCommand(ctx, cmd, readAgain)
 	if err != nil {
 		logError(err.Error())
 		return fmt.Errorf("unable to send command: %w", err)
@@ -176,6 +168,8 @@ func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input st
 	if strings.Contains(resps, "ERR") {
 		return fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resp)
 	}
+
+	vsdsp.Log.Infof("successfully sent setInput command", zap.String("output", output), zap.String("input", input))
 
 	return nil
 }

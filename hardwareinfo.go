@@ -247,7 +247,7 @@ func (dsp *KramerAFM20DSP) GetHardwareInfo(ctx context.Context) (structs.Hardwar
 	return toReturn, nil
 }
 
-func (dsp *KramerVP558) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
+func (vsdsp *KramerVP558) hardwareCommand(ctx context.Context, commandType, param string) (string, error) {
 	var cmd []byte
 
 	if len(param) > 0 {
@@ -257,7 +257,7 @@ func (dsp *KramerVP558) hardwareCommand(ctx context.Context, commandType, param 
 		cmd = []byte(fmt.Sprintf("#%s?\r\n", commandType))
 	}
 
-	resp, err := dsp.SendCommand(ctx, cmd)
+	resp, err := vsdsp.SendCommand(ctx, cmd, false)
 
 	if err != nil {
 		return "", fmt.Errorf("unable to send command: %w", err)
@@ -270,72 +270,72 @@ func (dsp *KramerVP558) hardwareCommand(ctx context.Context, commandType, param 
 	return resps, nil
 }
 
-func (dsp *KramerVP558) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
+func (vsdsp *KramerVP558) GetHardwareInfo(ctx context.Context) (structs.HardwareInfo, error) {
 	var toReturn structs.HardwareInfo
 	// get the hostname
-	addr, e := net.LookupAddr(dsp.Address)
+	addr, e := net.LookupAddr(vsdsp.Address)
 	if e != nil {
-		toReturn.Hostname = dsp.Address
+		toReturn.Hostname = vsdsp.Address
 	} else {
 		toReturn.Hostname = strings.Trim(addr[0], ".")
 	}
 
 	// get build date
-	buildDate, err := dsp.hardwareCommand(ctx, BuildDate, "")
+	buildDate, err := vsdsp.hardwareCommand(ctx, BuildDate, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get build date from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get build date from %s", vsdsp.Address)
 	}
 
 	toReturn.BuildDate = buildDate
 
 	// get device model
-	model, err := dsp.hardwareCommand(ctx, Model, "")
+	model, err := vsdsp.hardwareCommand(ctx, Model, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get model number from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get model number from %s", vsdsp.Address)
 	}
 
 	toReturn.ModelName = model
 
 	// get device protocol version
-	protocol, err := dsp.hardwareCommand(ctx, ProtocolVersion, "")
+	protocol, err := vsdsp.hardwareCommand(ctx, ProtocolVersion, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get protocol version from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get protocol version from %s", vsdsp.Address)
 	}
 
 	toReturn.ProtocolVersion = strings.Trim(protocol, "3000:")
 
 	// get firmware version
-	firmware, err := dsp.hardwareCommand(ctx, FirmwareVersion, "")
+	firmware, err := vsdsp.hardwareCommand(ctx, FirmwareVersion, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get firmware version from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get firmware version from %s", vsdsp.Address)
 	}
 
 	toReturn.FirmwareVersion = firmware
 
 	// get serial number
-	serial, err := dsp.hardwareCommand(ctx, SerialNumber, "")
+	serial, err := vsdsp.hardwareCommand(ctx, SerialNumber, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get serial number from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get serial number from %s", vsdsp.Address)
 	}
 
 	toReturn.SerialNumber = serial
 
 	// get IP address
-	ipAddress, err := dsp.hardwareCommand(ctx, IPAddress, "")
+	ipAddress, err := vsdsp.hardwareCommand(ctx, IPAddress, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get IP address from %s... ironic...", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get IP address from %s... ironic...", vsdsp.Address)
 	}
 
 	// get gateway
-	gateway, err := dsp.hardwareCommand(ctx, Gateway, "")
+	gateway, err := vsdsp.hardwareCommand(ctx, Gateway, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get the gateway address from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get the gateway address from %s", vsdsp.Address)
 	}
 
 	// get MAC address
-	mac, err := dsp.hardwareCommand(ctx, MACAddress, "")
+	mac, err := vsdsp.hardwareCommand(ctx, MACAddress, "")
 	if err != nil {
-		return toReturn, fmt.Errorf("failed to get the MAC address from %s", dsp.Address)
+		return toReturn, fmt.Errorf("failed to get the MAC address from %s", vsdsp.Address)
 	}
 
 	// set network information
