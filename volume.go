@@ -6,8 +6,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 const (
@@ -20,7 +18,7 @@ const (
 // The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 
-	dsp.Log.Infof("sending get volume command", zap.String("block", block))
+	// dsp.Log.Infof("sending get volume command", zap.String("block", block))
 	cmd := []byte(fmt.Sprintf("#X-AUD-LVL? OUT.ANALOG_AUDIO.%s.AUDIO.1\r\n", block))
 	resp, err := dsp.SendCommand(ctx, cmd)
 	if err != nil {
@@ -41,11 +39,11 @@ func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (
 	if err != nil {
 		return 0, err
 	}
-	dsp.Log.Infof("converting volume from decibels", zap.String("block", block))
+	// dsp.Log.Infof("converting volume from decibels", zap.String("block", block))
 
 	volume := convertBackToVolume(currentDB)
 
-	dsp.Log.Infof("successfully got volume", zap.String("block", block), zap.Int("level", volume))
+	// dsp.Log.Infof("successfully got volume", zap.String("block", block), zap.Int("level", volume))
 
 	return volume, nil
 }
@@ -55,7 +53,7 @@ func (dsp *KramerAFM20DSP) GetVolumeByBlock(ctx context.Context, block string) (
 func (dsp *KramerAFM20DSP) SetVolumeByBlock(ctx context.Context, block string, level int) error {
 	volumeLevel := convertToDB(level)
 
-	dsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
+	// dsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
 
 	cmd := []byte(fmt.Sprintf("#X-AUD-LVL OUT.ANALOG_AUDIO.%s.AUDIO.1, %v\r", block, volumeLevel))
 
@@ -70,7 +68,7 @@ func (dsp *KramerAFM20DSP) SetVolumeByBlock(ctx context.Context, block string, l
 		return fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
 
-	dsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
+	// dsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
 
 	return nil
 }
@@ -97,7 +95,7 @@ func convertBackToVolume(level int) int {
 // Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
 // for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
-	vsdsp.Log.Infof("sending get volume command", zap.String("block", block))
+	// vsdsp.Log.Infof("sending get volume command", zap.String("block", block))
 	fmt.Println("HERE")
 	cmd := []byte(fmt.Sprintf("#AUD-LVL? 1,%s\r\n", block))
 	resp, err := vsdsp.SendCommand(ctx, cmd, false)
@@ -119,7 +117,7 @@ func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (i
 		return 0, err
 	}
 
-	vsdsp.Log.Infof("successfully got volume level", zap.String("block", block), zap.Int("level", volume))
+	// vsdsp.Log.Infof("successfully got volume level", zap.String("block", block), zap.Int("level", volume))
 
 	return volume, nil
 }
@@ -130,7 +128,7 @@ func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (i
 func (vsdsp *KramerVP558) SetVolumeByBlock(ctx context.Context, block string, level int) error {
 	var cmd []byte
 
-	vsdsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
+	// vsdsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
 	cmd = []byte(fmt.Sprintf("#AUD-LVL 1,%s,%v\r", block, level))
 
 	//check to see if the mute status is going to be changing
@@ -155,7 +153,7 @@ func (vsdsp *KramerVP558) SetVolumeByBlock(ctx context.Context, block string, le
 	if strings.Contains(resps, "ERR") {
 		return fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
-	vsdsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
+	// vsdsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
 
 	return nil
 }

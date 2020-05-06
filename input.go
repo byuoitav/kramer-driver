@@ -9,7 +9,6 @@ import (
 	"github.com/byuoitav/common/log"
 	"github.com/byuoitav/common/status"
 	"github.com/fatih/color"
-	"go.uber.org/zap"
 )
 
 func logError(e string) {
@@ -108,7 +107,7 @@ func ToIndexZero(numString string) (string, error) {
 // The API is zero indexed, so outputs 0-3 correspond with outputs 1-4 on device
 // inputs 0-10 correspond with outputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
 func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (string, error) {
-	vsdsp.Log.Infof("sending getInput command", zap.String("output", output))
+	// vsdsp.Log.Infof("sending getInput command", zap.String("output", output))
 
 	log.L.Debugf("Getting input for output port %s", output)
 
@@ -133,7 +132,7 @@ func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (
 	var i status.Input
 	i.Input = parts[2]
 
-	vsdsp.Log.Infof("successfully got input", zap.String("output", output), zap.String("input", i.Input))
+	// vsdsp.Log.Infof("successfully got input", zap.String("output", output), zap.String("input", i.Input))
 	return i.Input, nil
 }
 
@@ -142,7 +141,7 @@ func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (
 func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input string) error {
 
 	log.L.Debugf("Routing %v to %v on %v", input, output, vsdsp.Address)
-	vsdsp.Log.Infof("sending setInput command", zap.String("output", output), zap.String("input", input))
+	// vsdsp.Log.Infof("sending setInput command", zap.String("output", output), zap.String("input", input))
 
 	cmd := []byte(fmt.Sprintf("#ROUTE 1,%s,%s\r\n", output, input))
 
@@ -169,7 +168,7 @@ func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input st
 		return fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resp)
 	}
 
-	vsdsp.Log.Infof("successfully sent setInput command", zap.String("output", output), zap.String("input", input))
+	// vsdsp.Log.Infof("successfully sent setInput command", zap.String("output", output), zap.String("input", input))
 
 	return nil
 }
