@@ -96,7 +96,6 @@ func convertBackToVolume(level int) int {
 // for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 	// vsdsp.Log.Infof("sending get volume command", zap.String("block", block))
-	fmt.Println("HERE")
 	cmd := []byte(fmt.Sprintf("#AUD-LVL? 1,%s\r\n", block))
 	resp, err := vsdsp.SendCommand(ctx, cmd, false)
 	if err != nil {
@@ -111,6 +110,10 @@ func (vsdsp *KramerVP558) GetVolumeByBlock(ctx context.Context, block string) (i
 
 	resps = strings.TrimSpace(resps)
 	parts := strings.Split(resps, ",")
+
+	if len(parts) != 3 {
+		return 0, fmt.Errorf("unexpected response, unable to parse: %s", resps)
+	}
 
 	volume, err := strconv.Atoi(parts[2])
 	if err != nil {
