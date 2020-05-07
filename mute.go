@@ -85,7 +85,7 @@ func (vsdsp *KramerVP558) GetMutedByBlock(ctx context.Context, block string) (bo
 	parts := strings.Split(resps, ",")
 
 	if len(parts) < 2 {
-		return 0, fmt.Errorf("unexpected response, unable to parse: %s", resps)
+		return false, fmt.Errorf("unexpected response, unable to parse: %s", resps)
 	}
 
 	if parts[1] == "0" {
