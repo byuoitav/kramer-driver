@@ -12,3 +12,21 @@ func (v *Via) infof(format string, a ...interface{}) {
 		v.Logger.Infof(format, a...)
 	}
 }
+
+func (v *Via) Debugf(format string, a ...interface{}) {
+	if v.Logger != nil {
+		v.Logger.Debugf(format, a...)
+	}
+}
+
+func (v *Via) Warnf(format string, a ...interface{}) {
+	if v.Logger != nil {
+		v.Logger.Warnf(format, a...)
+	}
+}
+
+func (v *Via) Errorf(format string, a ..interface{}) {
+	if v.Logger != nil {
+		v.Logger.Errorf(format, a...)
+	}
+}

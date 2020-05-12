@@ -95,7 +95,7 @@ func (v *VIA) GetPresenterCount(ctx context.Context) (int, error) {
 	command.Param1 = "all"
 	command.Param2 = "1"
 
-	log.L.Infof("Sending command to get VIA Presentation count to %s", v.Address)
+	v.Logger.Infof("Sending command to get VIA Presentation count to %s", v.Address)
 	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
 	// I am still checking for errors just in case something else fails during execution
 	resp, err := v.SendCommand(ctx, command)
