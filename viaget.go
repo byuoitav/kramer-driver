@@ -3,6 +3,8 @@ package kramer
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/byuoitav/common/log"
@@ -25,7 +27,7 @@ func (v *Via) GetVolume(ctx context.Context) (int, error) {
 	log.L.Infof("Sending command to get VIA Volume to %s", v.Address)
 	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
 	// I am still checking for errors just in case something else fails during execution
-	vollevel, err := v.SendCommand(ctx, command)
+	vollevel, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 
 	}
@@ -49,15 +51,15 @@ func (v *Via) volumeParse(vollevel string) (int, error) {
 }
 
 // isConnected checks the status of the VIA connection
-func (v *VIA) isConnected(ctx context.Context) bool {
+func (v *Via) isConnected(ctx context.Context) bool {
 	connected := false
 
 	log.L.Infof("Getting connected status of %s", v.Address)
 
-	var command Command
-	command.Command = "GetSerialNo"
+	var cmd command
+	cmd.Command = "GetSerialNo"
 
-	resp, err := v.SendCommand(ctx, command)
+	resp, err := v.sendCommand(ctx, cmd)
 	if err == nil && strings.Contains(resp, "GetSerialNo") {
 		connected = true
 	}
@@ -66,15 +68,15 @@ func (v *VIA) isConnected(ctx context.Context) bool {
 }
 
 // Get the Room Code and return the current room code as a string
-func (v *VIA) GetRoomCode(ctx context.Context) (string, error) {
-	var command Command
-	command.Command = "RCode"
-	command.Param1 = "Get"
-	command.Param2 = "Code"
+func (v *Via) GetRoomCode(ctx context.Context) (string, error) {
+	var cmd command
+	cmd.Command = "RCode"
+	cmd.Param1 = "Get"
+	cmd.Param2 = "Code"
 
 	log.L.Infof("Sending command to get current room code to %s", v.Address)
 	// Note: RCode Get command in VIA API doesn't have any error handling so it only returns RCode|Get|Code|XXXX or nothing
-	resp, err := v.SendCommand(ctx, command)
+	resp, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return "", err
 	}
@@ -89,16 +91,16 @@ func (v *VIA) GetRoomCode(ctx context.Context) (string, error) {
 }
 
 //GetPresenterCount .
-func (v *VIA) GetPresenterCount(ctx context.Context) (int, error) {
-	var command Command
-	command.Command = "PList"
-	command.Param1 = "all"
-	command.Param2 = "1"
+func (v *Via) GetPresenterCount(ctx context.Context) (int, error) {
+	var cmd command
+	cmd.Command = "PList"
+	cmd.Param1 = "all"
+	cmd.Param2 = "1"
 
 	v.Logger.Infof("Sending command to get VIA Presentation count to %s", v.Address)
 	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
 	// I am still checking for errors just in case something else fails during execution
-	resp, err := v.SendCommand(ctx, command)
+	resp, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return 0, err
 	}
@@ -119,32 +121,17 @@ func (v *VIA) GetPresenterCount(ctx context.Context) (int, error) {
 	return len(secondSplit), nil
 }
 
-// GetVolume for a VIA device
-func (v *VIA) GetVolume(ctx context.Context) (int, error) {
-
-	var command Command
-	command.Command = "Vol"
-	command.Param1 = "Get"
-
-	log.L.Infof("Sending command to get VIA Volume to %s", v.Address)
-	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
-	// I am still checking for errors just in case something else fails during execution
-	vollevel, _ := v.SendCommand(ctx, command)
-
-	return VolumeParse(vollevel)
-}
-
 // GetHardwareInfo for a VIA device
-func (v *VIA) GetHardwareInfo(ctx context.Context) (HardwareInfo, error) {
+func (v *Via) GetHardwareInfo(ctx context.Context) (HardwareInfo, error) {
 	log.L.Infof("Getting hardware info of %s", v.Address)
 
 	var toReturn HardwareInfo
-	var command Command
+	var cmd command
 
 	// get serial number
-	command.Command = "GetSerialNo"
+	cmd.Command = "GetSerialNo"
 
-	serial, err := v.SendCommand(ctx, command)
+	serial, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get serial number from %s", v.Address)
 	}
@@ -152,9 +139,9 @@ func (v *VIA) GetHardwareInfo(ctx context.Context) (HardwareInfo, error) {
 	toReturn.SerialNumber = parseResponse(serial, "|")
 
 	// get firmware version
-	command.Command = "GetVersion"
+	cmd.Command = "GetVersion"
 
-	version, err := v.SendCommand(ctx, command)
+	version, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get the firmware version of %s", v.Address)
 	}
@@ -162,17 +149,17 @@ func (v *VIA) GetHardwareInfo(ctx context.Context) (HardwareInfo, error) {
 	toReturn.FirmwareVersion = parseResponse(version, "|")
 
 	// get MAC address
-	command.Command = "GetMacAdd"
+	cmd.Command = "GetMacAdd"
 
-	macAddr, err := v.SendCommand(ctx, command)
+	macAddr, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get the MAC address of %s", v.Address)
 	}
 
 	// get IP information
-	command.Command = "IpInfo"
+	cmd.Command = "IpInfo"
 
-	ipInfo, err := v.SendCommand(ctx, command)
+	ipInfo, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return toReturn, fmt.Errorf("failed to get the IP information from %s", v.Address)
 	}
@@ -222,7 +209,7 @@ func parseIPInfo(ip string) (hostname string, network NetworkInfo) {
 }
 
 // GetActiveSignal determines the active signal of the VIA by getting the user count
-func (v *VIA) GetActiveSignal(ctx context.Context) (ActiveSignal, error) {
+func (v *Via) GetActiveSignal(ctx context.Context) (ActiveSignal, error) {
 	signal := ActiveSignal{Active: false}
 
 	count, err := v.GetPresenterCount(ctx)
@@ -238,20 +225,20 @@ func (v *VIA) GetActiveSignal(ctx context.Context) (ActiveSignal, error) {
 }
 
 // getStatusOfUsers returns the status of users that are logged in to the VIA
-func (v *VIA) GetStatusOfUsers(ctx context.Context) (VIAUsers, error) {
+func (v *Via) GetStatusOfUsers(ctx context.Context) (VIAUsers, error) {
 	var toReturn VIAUsers
 	toReturn.InactiveUsers = []string{}
 	toReturn.ActiveUsers = []string{}
 	toReturn.UsersWaiting = []string{}
 
-	var command Command
-	command.Command = "PList"
-	command.Param1 = "all"
-	command.Param2 = "4"
+	var cmd command
+	cmd.Command = "PList"
+	cmd.Param1 = "all"
+	cmd.Param2 = "4"
 
 	log.L.Infof("Sending command to get VIA users info to %s", v.Address)
 
-	response, err := v.SendCommand(ctx, command)
+	response, err := v.sendCommand(ctx, cmd)
 	if err != nil {
 		return toReturn, err
 	}
@@ -288,4 +275,27 @@ func (v *VIA) GetStatusOfUsers(ctx context.Context) (VIAUsers, error) {
 	}
 
 	return toReturn, nil
+}
+
+// Get the Room Code and return the current room code as a string
+func (v *Via) RoomCode(ctx context.Context) (string, error) {
+	var cmd command
+	cmd.Command = "RCode"
+	cmd.Param1 = "Get"
+	cmd.Param2 = "Code"
+
+	log.L.Infof("Sending command to get current room code to %s", v.Address)
+	// Note: RCode Get command in VIA API doesn't have any error handling so it only returns RCode|Get|Code|XXXX or nothing
+	resp, err := v.sendCommand(ctx, cmd)
+	if err != nil {
+		return "", err
+	}
+	split := strings.Split(resp, "|")
+	if len(split) != 4 {
+		return "", fmt.Errorf("Unknown response %v", resp)
+	}
+
+	roomcode := strings.TrimSpace(split[3])
+
+	return roomcode, nil
 }

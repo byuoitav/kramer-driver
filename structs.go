@@ -1,14 +1,14 @@
 package kramer
 
 import (
+	"encoding/xml"
 	"time"
 )
 
 // Options Struct is used for logging options
 type options struct {
-	ttl    time.Duration
-	delay  time.Duration
-	logger logger
+	ttl   time.Duration
+	delay time.Duration
 }
 
 func (f optionFunc) apply(o *options) {
@@ -68,4 +68,9 @@ type VIAUsers struct {
 	InactiveUsers []string `json:"inactive_users"`
 	ActiveUsers   []string `json:"active_users"`
 	UsersWaiting  []string `json:"users_waiting"`
+}
+
+type ActiveSignal struct {
+	// TODO should probably change this to a bool
+	Active bool `json:"active"`
 }

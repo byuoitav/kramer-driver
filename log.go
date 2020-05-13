@@ -25,7 +25,7 @@ func (v *Via) Warnf(format string, a ...interface{}) {
 	}
 }
 
-func (v *Via) Errorf(format string, a ..interface{}) {
+func (v *Via) Errorf(format string, a ...interface{}) {
 	if v.Logger != nil {
 		v.Logger.Errorf(format, a...)
 	}

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"net"
 	"regexp"
-	"strconv"
-	"strings"
+	//	"strconv"
+	//	"strings"
 	"time"
 
 	"github.com/byuoitav/common/log"
@@ -19,6 +19,7 @@ const (
 	viaReboot = "Reboot"
 	viaReset  = "Reset"
 )
+
 // VIA Struct that defines general parameters needed for any VIA
 type Via struct {
 	Address  string
@@ -27,14 +28,14 @@ type Via struct {
 	Logger   Logger
 }
 
-// These functions fulfill the DSP driver requirements 
+// These functions fulfill the DSP driver requirements
 // GetVolumeByBlock: opening a connection with the VIAs and then return the volume for the device
 func (v *Via) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
 	return v.GetVolume(ctx)
 }
 
 // SetVolumeByBlock: Connect and set the volume on the VIA
-func (v *Via) SetVolumeByBlock(ctx context.Context, block string, volume int) error {
+func (v *Via) SetVolumeByBlock(ctx context.Context, block string, volume int) (string, error) {
 	return v.SetVolume(ctx, volume)
 }
 
@@ -53,6 +54,7 @@ func (v *Via) GetInfo(ctx context.Context) (interface{}, error) {
 	var info interface{}
 	return info, fmt.Errorf("GetInfo has not been implemented in this version of the driver")
 }
+
 // End of DSP Driver requirements
 
 func getConnection(address string) (*net.TCPConn, error) {
@@ -74,7 +76,7 @@ func getConnection(address string) (*net.TCPConn, error) {
 }
 
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
-func (v *Via) sendCommand(ctx context.Context, command command) (string, error) {
+func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 	//Username, Password := v.importUser()
 	// get the connection
 	log.L.Infof("Opening telnet connection with %s", v.Address)
@@ -97,16 +99,16 @@ func (v *Via) sendCommand(ctx context.Context, command command) (string, error) 
 	}
 
 	// write command
-	if len(command.Command) > 0 {
-		command.Username = v.Username
-		b, err := xml.Marshal(command)
+	if len(cmd.Command) > 0 {
+		cmd.Username = v.Username
+		b, err := xml.Marshal(cmd)
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		err = conn.Write(b)
+		_, err = conn.Write(b)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
@@ -126,7 +128,7 @@ func (v *Via) sendCommand(ctx context.Context, command command) (string, error) 
 }
 
 func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
-	var cmd Command
+	var cmd command
 
 	//cmd.addAuth(v.Username, v.Password, true)
 	cmd.Username = v.Username
@@ -148,8 +150,7 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	if err != nil {
 		return err
 	}
-	err = conn.Write(b)
-	//err = cmd.writeCommand(conn)
+	_, err = conn.Write(b)
 	if err != nil {
 		return err
 	}
@@ -181,22 +182,4 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	//log.L.Infof("Login successful")
 
 	return nil
-}
-
-func getConnection(address string) (*net.TCPConn, error) {
-	radder, err := net.ResolveTCPAddr("tcp", address+":9982")
-	if err != nil {
-		err = fmt.Errorf("error resolving address : %s", err.Error())
-		log.L.Infof(err.Error())
-		return nil, err
-	}
-
-	conn, err := net.DialTCP("tcp", nil, radder)
-	if err != nil {
-		err = fmt.Errorf("error dialing address : %s", err.Error())
-		log.L.Infof(err.Error())
-		return nil, err
-	}
-
-	return conn, nil
 }
