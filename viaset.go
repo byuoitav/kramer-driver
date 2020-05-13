@@ -45,7 +45,7 @@ func (v *Via) Reset(ctx context.Context) error {
 }
 
 // SetAlert - Send an alert to the VIA
-func (v *Via) SetAlert(ctx context.Context, message string) error {
+func (v *Via) SetAlert(ctx context.Context, AlertMessage string) error {
 	var cmd command
 	cmd.Command = "IAlert"
 	cmd.Param1 = AlertMessage
