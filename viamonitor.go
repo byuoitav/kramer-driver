@@ -3,6 +3,7 @@ package kramer
 import (
 	"bufio"
 	"context"
+	"encoding/xml"
 	"net"
 
 	"github.com/byuoitav/common/log"
@@ -15,34 +16,57 @@ type Message struct {
 	State     string
 }
 
-type PersistantViaConnection struct {
-	conn   net.Conn
-	reader *bufio.Reader
+type PersistentViaConnection struct {
+	Conn   net.Conn
+	Reader *bufio.Reader
+}
+
+// Implementing ping functionality here for via-control
+// Do I really need to gather the output of this considering I am using this
+// to just keep the connection alive -- you decide!
+func (v *Via) Ping(conn *PersistentViaConnection) error {
+	var cmd command
+	cmd.Username = "su"
+	cmd.Command = "IpInfo"
+	m, err := xml.Marshal(cmd)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Conn.Write(m)
+	if err != nil {
+		return err
+	}
+	log.L.Info("Pong goes another ping!")
+	return nil
 }
 
 //Create a persistent connection in order to catch actions and events that are printed
 //out on console. This includes login, logoff, media presentation, and sharing events
-func (v *Via) PersistConnection(ctx context.Context) (*PersistantViaConnection, error) {
+func (v *Via) PersistConnection(ctx context.Context) (*PersistentViaConnection, error) {
 	// get the connection
 	log.L.Infof("Opening persistent telnet connection for reading events from %s", v.Address)
-	conn, err := getConnection(v.Address)
+	gconn, err := getConnection(v.Address)
 	if err != nil {
 		return nil, err
 	}
 
 	// login
-	err = v.login(ctx, conn)
+	err = v.login(ctx, gconn)
 	if err != nil {
 		log.L.Debugf("Houston, we have a problem logging in. The login failed")
 		return nil, err
 	}
 
-	return &PersistantViaConnection{
-		conn:   conn,
-		reader: bufio.NewReader(conn),
+	return &PersistentViaConnection{
+		Conn:   gconn,
+		Reader: bufio.NewReader(gconn),
 	}, nil
 }
 
+// This part is actually part of the VIA-Controller Microservice.
+// It is an example of how the messanger works (In the VIA-Controller, it's called in readPump)
+/*
 func (c *PersistantViaConnection) NextMessage() (Message, error) {
 	var msg Message
 
@@ -52,13 +76,13 @@ func (c *PersistantViaConnection) NextMessage() (Message, error) {
 	}
 
 	// parse buf
-
+	buf
 	// set message fields
 	msg.EventType = "current-user-count"
 
 	return msg, nil
 }
-
+*/
 // example
 //func main() {
 //	via := &kramer.Via{

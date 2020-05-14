@@ -2,10 +2,11 @@ package kramer
 
 import (
 	"encoding/xml"
-	"time"
+	//	"time"
 )
 
 // Options Struct is used for logging options
+/*
 type options struct {
 	ttl   time.Duration
 	delay time.Duration
@@ -18,6 +19,7 @@ func (f optionFunc) apply(o *options) {
 type Option interface {
 	apply(*options)
 }
+*/
 
 // command: Struct used to build the XML commands that need to be sent to the VIA
 type command struct {
