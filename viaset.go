@@ -62,7 +62,7 @@ func (v *Via) SetAlert(ctx context.Context, AlertMessage string) error {
 	}
 	sp := strings.Split(resp, "|")
 	s := sp[1]
-	sint := strconv.Atoi(s)
+	sint, err := strconv.Atoi(s)
 	if sint != 1 {
 		return fmt.Errorf("Alert was not successfully sent, checking settings and try again")
 	}
