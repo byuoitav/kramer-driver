@@ -11,8 +11,7 @@ import (
 	//	"strconv"
 	//	"strings"
 	"time"
-
-	"github.com/byuoitav/common/log"
+	//"github.com/byuoitav/common/log"
 )
 
 const (
@@ -61,14 +60,12 @@ func getConnection(address string) (*net.TCPConn, error) {
 	radder, err := net.ResolveTCPAddr("tcp", address+":9982")
 	if err != nil {
 		err = fmt.Errorf("error resolving address : %s", err.Error())
-		log.L.Infof(err.Error())
 		return nil, err
 	}
 
 	conn, err := net.DialTCP("tcp", nil, radder)
 	if err != nil {
 		err = fmt.Errorf("error dialing address : %s", err.Error())
-		log.L.Infof(err.Error())
 		return nil, err
 	}
 
@@ -79,7 +76,7 @@ func getConnection(address string) (*net.TCPConn, error) {
 func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 	//Username, Password := v.importUser()
 	// get the connection
-	log.L.Infof("Opening telnet connection with %s", v.Address)
+	v.Infof("Opening telnet connection with %s", v.Address)
 	conn, err := getConnection(v.Address)
 	if err != nil {
 		return "", err
@@ -94,7 +91,7 @@ func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 	//login(conn, Username, Password)
 	err = v.login(ctx, conn)
 	if err != nil {
-		log.L.Debugf("Houston, we have a problem logging in. The login failed")
+		v.Debugf("Houston, we have a problem logging in. The login failed")
 		return "", err
 	}
 
@@ -116,12 +113,12 @@ func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 	resp, err := reader.ReadBytes('\n')
 	if err != nil {
 		err = fmt.Errorf("error reading from system: %s", err.Error())
-		log.L.Error(err.Error())
+		v.Errorf(err.Error())
 		return "", err
 	}
 
 	if len(string(resp)) > 0 {
-		log.L.Infof("Response from device: %s", resp)
+		v.Infof("Response from device: %s", resp)
 	}
 
 	return string(resp), nil
@@ -140,25 +137,27 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	_, err := reader.ReadBytes('\n')
 	if err != nil {
 		err = fmt.Errorf("error reading from system: %s", err.Error())
-		log.L.Error(err.Error())
+		v.Errorf(err.Error())
 		return err
 	}
 
-	log.L.Infof("Logging in...")
-	log.L.Debugf("Username: %s", v.Username)
+	v.Infof("Logging in...")
+	v.Debugf("Username: %s", v.Username)
+
 	b, err := xml.Marshal(cmd)
 	if err != nil {
 		return err
 	}
+
 	_, err = conn.Write(b)
 	if err != nil {
 		return err
 	}
-	//reader := bufio.NewReader(conn)
+
 	resp, err := reader.ReadBytes('\n')
 	if err != nil {
 		err = fmt.Errorf("error reading from system: %s", err.Error())
-		log.L.Error(err.Error())
+		v.Errorf(err.Error())
 		return err
 	}
 
@@ -170,16 +169,14 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	SuccessResp := SuccessRx.MatchString(s)
 
 	if respRx == true {
-		log.L.Infof("Response from device: %s", s)
+		v.Infof("Response from device: %s", s)
 		err := fmt.Errorf("Unable to login due to an error: %s", s)
 		return err
 	}
 
 	if SuccessResp == true {
-		log.L.Debugf("Connection is successful, We are connected: %s", s)
+		v.Debugf("Connection is successful, We are connected: %s", s)
 	}
-
-	//log.L.Infof("Login successful")
 
 	return nil
 }

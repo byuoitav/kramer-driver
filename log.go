@@ -7,7 +7,7 @@ type Logger interface {
 	Errorf(format string, a ...interface{})
 }
 
-func (v *Via) infof(format string, a ...interface{}) {
+func (v *Via) Infof(format string, a ...interface{}) {
 	if v.Logger != nil {
 		v.Logger.Infof(format, a...)
 	}

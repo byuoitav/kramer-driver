@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/xml"
 	"net"
-
-	"github.com/byuoitav/common/log"
 )
 
 type Message struct {
@@ -37,7 +35,7 @@ func (v *Via) Ping(conn *PersistentViaConnection) error {
 	if err != nil {
 		return err
 	}
-	log.L.Info("Pong goes another ping!")
+	v.Infof("Sending Ping to %s", v.Address)
 	return nil
 }
 
@@ -45,7 +43,7 @@ func (v *Via) Ping(conn *PersistentViaConnection) error {
 //out on console. This includes login, logoff, media presentation, and sharing events
 func (v *Via) PersistConnection(ctx context.Context) (*PersistentViaConnection, error) {
 	// get the connection
-	log.L.Infof("Opening persistent telnet connection for reading events from %s", v.Address)
+	v.Infof("Opening persistent telnet connection for reading events from %s", v.Address)
 	gconn, err := getConnection(v.Address)
 	if err != nil {
 		return nil, err
@@ -54,7 +52,7 @@ func (v *Via) PersistConnection(ctx context.Context) (*PersistentViaConnection, 
 	// login
 	err = v.login(ctx, gconn)
 	if err != nil {
-		log.L.Debugf("Houston, we have a problem logging in. The login failed")
+		v.Debugf("Houston, we have a problem logging in. The login failed")
 		return nil, err
 	}
 
@@ -65,7 +63,7 @@ func (v *Via) PersistConnection(ctx context.Context) (*PersistentViaConnection, 
 }
 
 // This part is actually part of the VIA-Controller Microservice.
-// It is an example of how the messanger works (In the VIA-Controller, it's called in readPump)
+// It is an example of how the messenger works (In the VIA-Controller, it's called in readPump)
 /*
 func (c *PersistantViaConnection) NextMessage() (Message, error) {
 	var msg Message

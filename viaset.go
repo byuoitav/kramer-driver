@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/byuoitav/common/log"
 )
 
 // Reboot: Reboot a VIA using the API
@@ -15,7 +13,7 @@ func (v *Via) Reboot(ctx context.Context) error {
 	var cmd command
 	cmd.Command = viaReboot
 
-	log.L.Infof("Sending command %s to %s", viaReboot, v.Address)
+	v.Infof("Sending command %s to %s", viaReboot, v.Address)
 
 	_, err := v.sendCommand(ctx, cmd)
 	if err != nil {
@@ -30,7 +28,7 @@ func (v *Via) Reset(ctx context.Context) error {
 	var cmd command
 	cmd.Command = viaReset
 
-	log.L.Infof("Sending command %s to %s", viaReset, v.Address)
+	v.Infof("Sending command %s to %s", viaReset, v.Address)
 
 	resp, err := v.sendCommand(ctx, cmd)
 	if err != nil {
@@ -44,26 +42,31 @@ func (v *Via) Reset(ctx context.Context) error {
 	return errors.New(fmt.Sprintf("Incorrect response for command. (Response: %s)", resp))
 }
 
-// SetAlert - Send an alert to the VIA
+// SetAlert - Send an alert popup on the screen of the VIA
 func (v *Via) SetAlert(ctx context.Context, AlertMessage string) error {
+	v.Debugf("AlertMessage to pass: %s", AlertMessage)
+
 	var cmd command
 	cmd.Command = "IAlert"
 	cmd.Param1 = AlertMessage
 	cmd.Param2 = "0"
 	cmd.Param3 = "5"
 
-	log.L.Infof("Sending Alert to %v", v.Address)
+	v.Infof("Sending Alert to %v", v.Address)
 
-	log.L.Debugf("Sending an alert message -%s- to %s", AlertMessage, v.Address)
+	v.Debugf("Sending an alert message -%s- to %s", AlertMessage, v.Address)
 
 	resp, err := v.sendCommand(ctx, cmd)
 	if err != nil {
+		v.Errorf("Error in setting alert on %s", v.Address)
 		return fmt.Errorf("Error in setting alert on %s", v.Address)
 	}
-	sp := strings.Split(resp, "|")
+	clean := strings.TrimRight(resp, "\r\n")
+	sp := strings.Split(clean, "|")
 	s := sp[1]
 	sint, err := strconv.Atoi(s)
 	if sint != 1 {
+		v.Errorf("Alert was not successfully sent, check settings and try again")
 		return fmt.Errorf("Alert was not successfully sent, checking settings and try again")
 	}
 
@@ -77,7 +80,7 @@ func (v *Via) SetVolume(ctx context.Context, volume int) (string, error) {
 	cmd.Param1 = "Set"
 	cmd.Param2 = strconv.Itoa(volume)
 
-	log.L.Infof("Sending volume set command to %s", v.Address)
+	v.Infof("Sending volume set command to %s", v.Address)
 
 	resp, err := v.sendCommand(ctx, cmd)
 	if err != nil {

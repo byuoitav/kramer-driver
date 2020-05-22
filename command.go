@@ -8,30 +8,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
+	//"github.com/fatih/color"
 
 	"github.com/byuoitav/common/log"
 )
 
 // Takes a command and sends it to the address, and returns the devices response to that command
 func SendCommand(conn *net.TCPConn, address, command string) (resp string, err error) {
-	defer color.Unset()
-
 	resp, err = writeCommand(conn, command)
 	if err != nil {
 		return "", err
 	}
 
-	color.Set(color.FgBlue)
 	log.L.Infof("Response from device: %s", resp)
 	return resp, nil
 }
 
 func writeCommand(conn *net.TCPConn, command string) (string, error) {
 	command = strings.Replace(command, " ", string(SPACE), -1)
-	color.Set(color.FgMagenta)
 	log.L.Infof("Sending command %s", command)
-	color.Unset()
 	command += string(CARRIAGE_RETURN) + string(LINE_FEED)
 	conn.Write([]byte(command))
 
@@ -98,7 +93,5 @@ func charInBuffer(toCheck byte, buffer []byte) bool {
 }
 
 func logError(e string) {
-	color.Set(color.FgRed)
 	log.L.Infof("%s", e)
-	color.Unset()
 }
