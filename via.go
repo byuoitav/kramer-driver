@@ -8,10 +8,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
-	//	"strconv"
-	//	"strings"
 	"time"
-	//"github.com/byuoitav/common/log"
 )
 
 const (
@@ -74,7 +71,6 @@ func getConnection(address string) (*net.TCPConn, error) {
 
 // SendCommand opens a connection with <addr> and sends the <command> to the via, returning the response from the via, or an error if one occured.
 func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
-	//Username, Password := v.importUser()
 	// get the connection
 	v.Infof("Opening telnet connection with %s", v.Address)
 	conn, err := getConnection(v.Address)
@@ -88,7 +84,6 @@ func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 	conn.SetReadDeadline(time.Now().Add(timeoutDuration))
 
 	// login
-	//login(conn, Username, Password)
 	err = v.login(ctx, conn)
 	if err != nil {
 		v.Debugf("Houston, we have a problem logging in. The login failed")
@@ -127,7 +122,6 @@ func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	var cmd command
 
-	//cmd.addAuth(v.Username, v.Password, true)
 	cmd.Username = v.Username
 	cmd.Password = v.Password
 	cmd.Command = "Login"
