@@ -8,10 +8,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
-	//	"strconv"
-	//	"strings"
 	"time"
-	//"github.com/byuoitav/common/log"
 )
 
 const (

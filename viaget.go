@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	//"github.com/byuoitav/common/log"
 )
 
 // User status constants
