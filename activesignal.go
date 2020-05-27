@@ -9,7 +9,7 @@ import (
 	"github.com/byuoitav/common/structs"
 )
 
-func (vs *VideoSwitcher) GetActiveSignal(ctx context.Context, port string) (error, structs.ActiveSignal) {
+func (vs *Kramer4x4) GetActiveSignal(ctx context.Context, port string) (error, structs.ActiveSignal) {
 	rW := true
 	var signal structs.ActiveSignal
 	i, err := ToIndexOne(port)
@@ -50,7 +50,7 @@ func LessThanZero(numString string) bool {
 	return num < 0
 }
 
-func (vs *VideoSwitcher) GetActiveSignalByPort(ctx context.Context, port string, readWelcome bool) (structs.ActiveSignal, error) {
+func (vs *Kramer4x4) GetActiveSignalByPort(ctx context.Context, port string, readWelcome bool) (structs.ActiveSignal, error) {
 	var signal structs.ActiveSignal
 
 	signal.Active = false

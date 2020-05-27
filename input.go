@@ -11,8 +11,14 @@ import (
 	"github.com/fatih/color"
 )
 
+func logError(e string) {
+	color.Set(color.FgRed)
+	log.L.Infof("%s", e)
+	color.Unset()
+}
+
 // GetInput returns the current input
-func (vs *VideoSwitcher) getInputByOutput(ctx context.Context, output string) (string, error) {
+func (vs *Kramer4x4) GetInputByOutput(ctx context.Context, output string) (string, error) {
 
 	p, err := ToIndexOne(output)
 	if err != nil || LessThanZero(output) {
@@ -55,7 +61,7 @@ func (vs *VideoSwitcher) getInputByOutput(ctx context.Context, output string) (s
 }
 
 // SwitchInput changes the input on the given output to input
-func (vs *VideoSwitcher) setInputByOutput(ctx context.Context, output, input string) error {
+func (vs *Kramer4x4) SetInputByOutput(ctx context.Context, output, input string) error {
 	i, err := ToIndexOne(input)
 	if err != nil || LessThanZero(input) {
 		return fmt.Errorf("Error! Input parameter %s is not valid!", input)
@@ -95,4 +101,74 @@ func ToIndexZero(numString string) (string, error) {
 	num--
 
 	return strconv.Itoa(num), nil
+}
+
+// GetInput returns the current input
+// The API is zero indexed, so outputs 0-3 correspond with outputs 1-4 on device
+// inputs 0-10 correspond with outputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
+func (vsdsp *KramerVP558) GetInputByOutput(ctx context.Context, output string) (string, error) {
+	// vsdsp.Log.Infof("sending getInput command", zap.String("output", output))
+
+	log.L.Debugf("Getting input for output port %s", output)
+
+	cmd := []byte(fmt.Sprintf("#ROUTE? 1,%s\r\n", output))
+	resp, err := vsdsp.SendCommand(ctx, cmd, false)
+	if err != nil {
+		logError(err.Error())
+		return "", fmt.Errorf("error sending command: %w", err)
+	}
+
+	resps := string(resp)
+	if strings.Contains(resps, "ERR") {
+		return "", fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resps)
+	}
+	resps = strings.TrimSpace(resps)
+
+	parts := strings.Split(resps, ",")
+	if len(parts) != 3 {
+		return "", fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resps)
+	}
+
+	var i status.Input
+	i.Input = parts[2]
+
+	// vsdsp.Log.Infof("successfully got input", zap.String("output", output), zap.String("input", i.Input))
+	return i.Input, nil
+}
+
+// SwitchInput changes the input on the given output to input
+// outputs 1-4 on device inputs 1-11 see https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (page 66)
+func (vsdsp *KramerVP558) SetInputByOutput(ctx context.Context, output, input string) error {
+
+	log.L.Debugf("Routing %v to %v on %v", input, output, vsdsp.Address)
+	// vsdsp.Log.Infof("sending setInput command", zap.String("output", output), zap.String("input", input))
+
+	cmd := []byte(fmt.Sprintf("#ROUTE 1,%s,%s\r\n", output, input))
+
+	//cheack to see if the current input is going to be changing
+	currentInput, err := vsdsp.GetInputByOutput(ctx, output)
+	if err != nil {
+		logError(err.Error())
+		return fmt.Errorf("error sending command: %w", err)
+	}
+	//if there is a change, two responses will be sent and both need to be read
+	readAgain := false
+	if currentInput != input {
+		readAgain = true
+	}
+
+	resp, err := vsdsp.SendCommand(ctx, cmd, readAgain)
+	if err != nil {
+		logError(err.Error())
+		return fmt.Errorf("unable to send command: %w", err)
+	}
+
+	resps := string(resp)
+	if strings.Contains(resps, "ERR") {
+		return fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resp)
+	}
+
+	// vsdsp.Log.Infof("successfully sent setInput command", zap.String("output", output), zap.String("input", input))
+
+	return nil
 }

@@ -9,32 +9,32 @@ import (
 	"github.com/byuoitav/connpool"
 )
 
-type Kramer4x4 struct {
+type KramerVP558 struct {
 	Address string
 	Log     Logger
 
 	pool *connpool.Pool
 }
 
-var (
-	_defaultTTL   = 30 * time.Second
-	_defaultDelay = 500 * time.Millisecond
-)
+// var (
+// 	_defaultTTL   = 30 * time.Second
+// 	_defaultDelay = 500 * time.Millisecond
+// )
 
-type Kramer4x4options struct {
+type KramerVP558options struct {
 	ttl    time.Duration
 	delay  time.Duration
 	logger Logger
 }
 
-type Kramer4x4Option interface {
-	apply(*Kramer4x4options)
+type KramerVP558Option interface {
+	apply(*KramerVP558options)
 }
 
-type Kramer4x4optionFunc func(*Kramer4x4options)
+type KramerVP558optionFunc func(*KramerVP558options)
 
-func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
-	options := Kramer4x4options{
+func NewVideoSwitcherDsp(addr string, opts ...KramerVP558Option) *KramerVP558 {
+	options := KramerVP558options{
 		ttl:   _defaultTTL,
 		delay: _defaultDelay,
 	}
@@ -43,7 +43,7 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 		o.apply(&options)
 	}
 
-	vs := &Kramer4x4{
+	vsdsp := &KramerVP558{
 		Address: addr,
 		pool: &connpool.Pool{
 			TTL:    options.ttl,
@@ -52,9 +52,9 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 		},
 	}
 
-	vs.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
+	vsdsp.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
 		d := net.Dialer{}
-		conn, err := d.DialContext(ctx, "tcp", vs.Address+":5000")
+		conn, err := d.DialContext(ctx, "tcp", vsdsp.Address+":5000")
 		if err != nil {
 			return nil, fmt.Errorf("unable to open connection: %w", err)
 		}
@@ -68,14 +68,14 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 		return conn, nil
 	}
 
-	return vs
+	return vsdsp
 }
 
 // SendCommand sends the byte array to the desired address of projector
-func (vs *Kramer4x4) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
+func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte, readAgain bool) ([]byte, error) {
 	var resp []byte
 
-	err := vs.pool.Do(ctx, func(conn connpool.Conn) error {
+	err := vsdsp.pool.Do(ctx, func(conn connpool.Conn) error {
 		_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
 
 		n, err := conn.Write(cmd)
@@ -89,6 +89,12 @@ func (vs *Kramer4x4) SendCommand(ctx context.Context, cmd []byte) ([]byte, error
 		resp, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
 		if err != nil {
 			return fmt.Errorf("unable to read response: %w", err)
+		}
+		if readAgain {
+			_, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
+			if err != nil {
+				return fmt.Errorf("unable to read response: %w", err)
+			}
 		}
 
 		return nil
