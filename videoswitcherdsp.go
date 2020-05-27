@@ -77,6 +77,7 @@ func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte, readAgain
 
 	err := vsdsp.pool.Do(ctx, func(conn connpool.Conn) error {
 		_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
+		readDur := time.Now().Add(3 * time.Second)
 
 		n, err := conn.Write(cmd)
 		switch {
@@ -86,12 +87,12 @@ func (vsdsp *KramerVP558) SendCommand(ctx context.Context, cmd []byte, readAgain
 			return fmt.Errorf("wrote %v/%v bytes of command 0x%x", n, len(cmd), cmd)
 		}
 
-		resp, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
+		resp, err = conn.ReadUntil(LINE_FEED, readDur)
 		if err != nil {
 			return fmt.Errorf("unable to read response: %w", err)
 		}
 		if readAgain {
-			_, err = conn.ReadUntil(LINE_FEED, 3*time.Second)
+			_, err = conn.ReadUntil(LINE_FEED, readDur)
 			if err != nil {
 				return fmt.Errorf("unable to read response: %w", err)
 			}
