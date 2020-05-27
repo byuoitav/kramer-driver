@@ -22,10 +22,11 @@ func (v *Via) GetVolume(ctx context.Context) (int, error) {
 
 	v.Infof("Sending command to get VIA Volume to %s", v.Address)
 	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
-	// I am still checking for errors just in case something else fails during execution
+	// Checking for errors during execution of command
 	vollevel, err := v.sendCommand(ctx, cmd)
 	if err != nil {
-
+		v.Debugf("Failed to get volume from %s: %s", v.Address, err)
+		return 0, err
 	}
 
 	return v.volumeParse(vollevel)
@@ -94,10 +95,10 @@ func (v *Via) GetPresenterCount(ctx context.Context) (int, error) {
 	cmd.Param2 = "1"
 
 	v.Logger.Infof("Sending command to get VIA Presentation count to %s", v.Address)
-	// Note: Volume Get command in VIA API doesn't have any error handling so it only returns Vol|Get|XX or nothing
-	// I am still checking for errors just in case something else fails during execution
+	// Check for errors on execution of the command was sent correctly and no error occured during send
 	resp, err := v.sendCommand(ctx, cmd)
 	if err != nil {
+		v.Debugf("Error in retrieving volume settings on ")
 		return 0, err
 	}
 

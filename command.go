@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/fatih/color"
-
 	"github.com/byuoitav/common/log"
 )
 

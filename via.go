@@ -27,12 +27,22 @@ type Via struct {
 // These functions fulfill the DSP driver requirements
 // GetVolumeByBlock: opening a connection with the VIAs and then return the volume for the device
 func (v *Via) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
-	return v.GetVolume(ctx)
+	resp, err := v.GetVolume(ctx)
+	if err != nil {
+		v.Debugf("Error retrieving volume: s%", err)
+		return 0, err
+	}
+
+	return resp, nil
 }
 
 // SetVolumeByBlock: Connect and set the volume on the VIA
-func (v *Via) SetVolumeByBlock(ctx context.Context, block string, volume int) (string, error) {
-	return v.SetVolume(ctx, volume)
+func (v *Via) SetVolumeByBlock(ctx context.Context, block string, volume int) error {
+	_, err := v.SetVolume(ctx, volume)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetMutedByBlock: Return error because VIAs do not support a mute function
@@ -46,9 +56,12 @@ func (v *Via) SetMutedByBlock(ctx context.Context, block string, muted bool) err
 }
 
 // GetInfo: needed by the DSP drivers implementation.  Will get hardware information
-func (v *Via) GetInfo(ctx context.Context) (interface{}, error) {
-	var info interface{}
-	return info, fmt.Errorf("GetInfo has not been implemented in this version of the driver")
+func (v *Via) GetInfo(ctx context.Context) (HardwareInfo, error) {
+	info, err := v.GetHardwareInfo(ctx)
+	if err != nil {
+		return info, fmt.Errorf("Failed to get hardware information: %s", err)
+	}
+	return info, nil
 }
 
 // End of DSP Driver requirements
@@ -86,7 +99,7 @@ func (v *Via) sendCommand(ctx context.Context, cmd command) (string, error) {
 	// login
 	err = v.login(ctx, conn)
 	if err != nil {
-		v.Debugf("Houston, we have a problem logging in. The login failed")
+		v.Debugf("Houston, we have a problem logging in. The login failed: %s", err)
 		return "", err
 	}
 

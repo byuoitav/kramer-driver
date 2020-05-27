@@ -56,6 +56,5 @@ type VIAUsers struct {
 }
 
 type ActiveSignal struct {
-	// TODO should probably change this to a bool
 	Active bool `json:"active"`
 }
