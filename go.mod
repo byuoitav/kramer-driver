@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/byuoitav/central-event-system v0.0.0-20200121172633-64fd9d467249
 	github.com/byuoitav/common v0.0.0-20191210190714-e9b411b3cc0d
-	github.com/byuoitav/connpool v0.1.5
+	github.com/byuoitav/connpool v0.4.1
 	github.com/byuoitav/endpoint-authorization-controller v0.0.0-20190306172901-dd51e868d6df // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fatih/color v1.8.0

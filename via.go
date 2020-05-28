@@ -56,7 +56,7 @@ func (v *Via) SetMutedByBlock(ctx context.Context, block string, muted bool) err
 }
 
 // GetInfo: needed by the DSP drivers implementation.  Will get hardware information
-func (v *Via) GetInfo(ctx context.Context) (HardwareInfo, error) {
+func (v *Via) GetInfo(ctx context.Context) (interface{}, error) {
 	info, err := v.GetHardwareInfo(ctx)
 	if err != nil {
 		return info, fmt.Errorf("Failed to get hardware information: %s", err)
