@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -25,34 +26,35 @@ type Via struct {
 }
 
 // These functions fulfill the DSP driver requirements
-// GetVolumeByBlock: opening a connection with the VIAs and then return the volume for the device
-func (v *Via) GetVolumeByBlock(ctx context.Context, block string) (int, error) {
+// GetVolumes: opening a connection with the VIAs and then return the volume for the device
+func (v *Via) GetVolumes(ctx context.Context, block []string) (map[string]int, error) {
+	toReturn := make(map[string]int)
 	resp, err := v.GetVolume(ctx)
 	if err != nil {
 		v.Debugf("Error retrieving volume: s%", err)
-		return 0, err
+		return toReturn, err
 	}
 
-	return resp, nil
+	toReturn[""] = resp
+	return toReturn, nil
 }
 
-// SetVolumeByBlock: Connect and set the volume on the VIA
-func (v *Via) SetVolumeByBlock(ctx context.Context, block string, volume int) error {
-	_, err := v.SetVolume(ctx, volume)
+// SetVolume: Connect and set the volume on the VIA
+func (v *Via) SetVolume(ctx context.Context, block string, volume int) error {
+	var cmd command
+	cmd.Command = "Vol"
+	cmd.Param1 = "Set"
+	cmd.Param2 = strconv.Itoa(volume)
+
+	v.Infof("Sending volume set command to %s", v.Address)
+
+	_, err := v.sendCommand(ctx, cmd)
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Error in setting volume on %s", v.Address))
 	}
+
 	return nil
-}
 
-// GetMutedByBlock: Return error because VIAs do not support a mute function
-func (v *Via) GetMutedByBlock(ctx context.Context, block string) (bool, error) {
-	return false, errors.New("Error in getting mute status of VIA, Feature not supported")
-}
-
-// SetMutedByBlock: Return error because VIAs do not support mute
-func (v *Via) SetMutedByBlock(ctx context.Context, block string, muted bool) error {
-	return errors.New("Error setting mute status of VIA, Feature not supported")
 }
 
 // GetInfo: needed by the DSP drivers implementation.  Will get hardware information

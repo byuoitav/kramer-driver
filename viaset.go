@@ -72,21 +72,3 @@ func (v *Via) SetAlert(ctx context.Context, AlertMessage string) error {
 
 	return nil
 }
-
-// SetVolume - Used to set the volume on a VIA (Used by both VIA-Control and DSP Driver sets)
-func (v *Via) SetVolume(ctx context.Context, volume int) (string, error) {
-	var cmd command
-	cmd.Command = "Vol"
-	cmd.Param1 = "Set"
-	cmd.Param2 = strconv.Itoa(volume)
-
-	v.Infof("Sending volume set command to %s", v.Address)
-
-	resp, err := v.sendCommand(ctx, cmd)
-	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error in setting volume on %s", v.Address))
-	}
-
-	return resp, nil
-
-}
