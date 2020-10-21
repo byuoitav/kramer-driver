@@ -33,6 +33,16 @@ type Kramer4x4Option interface {
 
 type Kramer4x4optionFunc func(*Kramer4x4options)
 
+func (f Kramer4x4optionFunc) apply(o *Kramer4x4options) {
+	f(o)
+}
+
+func WithLogger4x4(l Logger) Kramer4x4Option {
+	return Kramer4x4optionFunc(func(o *Kramer4x4options) {
+		o.logger = l
+	})
+}
+
 func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 	options := Kramer4x4options{
 		ttl:   _defaultTTL,
@@ -50,6 +60,7 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 			Delay:  options.delay,
 			Logger: options.logger,
 		},
+		Log: options.logger,
 	}
 
 	vs.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {
@@ -74,6 +85,7 @@ func NewVideoSwitcher(addr string, opts ...Kramer4x4Option) *Kramer4x4 {
 // SendCommand sends the byte array to the desired address of projector
 func (vs *Kramer4x4) SendCommand(ctx context.Context, cmd []byte) ([]byte, error) {
 	var resp []byte
+	// cmd = []byte(strings.Replace(string(cmd), " ", string(SPACE), -1))
 
 	err := vs.pool.Do(ctx, func(conn connpool.Conn) error {
 		_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))

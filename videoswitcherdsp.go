@@ -33,6 +33,16 @@ type KramerVP558Option interface {
 
 type KramerVP558optionFunc func(*KramerVP558options)
 
+func (f KramerVP558optionFunc) apply(o *KramerVP558options) {
+	f(o)
+}
+
+func WithLoggerVSDSP(l Logger) KramerVP558Option {
+	return KramerVP558optionFunc(func(o *KramerVP558options) {
+		o.logger = l
+	})
+}
+
 func NewVideoSwitcherDsp(addr string, opts ...KramerVP558Option) *KramerVP558 {
 	options := KramerVP558options{
 		ttl:   _defaultTTL,
@@ -50,6 +60,7 @@ func NewVideoSwitcherDsp(addr string, opts ...KramerVP558Option) *KramerVP558 {
 			Delay:  options.delay,
 			Logger: options.logger,
 		},
+		Log: options.logger,
 	}
 
 	vsdsp.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {

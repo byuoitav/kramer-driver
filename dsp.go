@@ -34,6 +34,16 @@ type KramerAFM20DSPOption interface {
 
 type KramerAFM20DSPoptionFunc func(*KramerAFM20DSPoptions)
 
+func (f KramerAFM20DSPoptionFunc) apply(o *KramerAFM20DSPoptions) {
+	f(o)
+}
+
+func WithLoggerDSP(l Logger) KramerAFM20DSPOption {
+	return KramerAFM20DSPoptionFunc(func(o *KramerAFM20DSPoptions) {
+		o.logger = l
+	})
+}
+
 func NewDsp(addr string, opts ...KramerAFM20DSPOption) *KramerAFM20DSP {
 	options := KramerAFM20DSPoptions{
 		ttl:   _defaultTTL,
@@ -51,6 +61,7 @@ func NewDsp(addr string, opts ...KramerAFM20DSPOption) *KramerAFM20DSP {
 			Delay:  options.delay,
 			Logger: options.logger,
 		},
+		Log: options.logger,
 	}
 
 	dsp.pool.NewConnection = func(ctx context.Context) (net.Conn, error) {

@@ -6,6 +6,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -18,13 +20,14 @@ const (
 // The blocks are going to be a number between 1-20, determined by its configuration
 func (dsp *KramerAFM20DSP) GetVolumes(ctx context.Context, blocks []string) (map[string]int, error) {
 	toReturn := make(map[string]int)
-	// dsp.Log.Infof("sending get volume command", zap.String("block", block))
 
 	for _, block := range blocks {
+		dsp.Log.Infof("sending get volume command", zap.String("block", block))
+
 		cmd := []byte(fmt.Sprintf("#X-AUD-LVL? OUT.ANALOG_AUDIO.%s.AUDIO.1\r\n", block))
 		resp, err := dsp.SendCommand(ctx, cmd)
 		if err != nil {
-			logError(err.Error())
+			dsp.Log.Errorf("error sending command: %s", err.Error())
 			return toReturn, fmt.Errorf("error sending command: %w", err)
 		}
 
@@ -41,11 +44,11 @@ func (dsp *KramerAFM20DSP) GetVolumes(ctx context.Context, blocks []string) (map
 		if err != nil {
 			return toReturn, err
 		}
-		// dsp.Log.Infof("converting volume from decibels", zap.String("block", block))
+		dsp.Log.Infof("converting volume from decibels", zap.String("block", block))
 
 		toReturn[block] = convertBackToVolume(currentDB)
 
-		// dsp.Log.Infof("successfully got volume", zap.String("block", block), zap.Int("level", volume))
+		dsp.Log.Infof("successfully got volume", zap.String("block", block), zap.Int("level", toReturn[block]))
 	}
 	return toReturn, nil
 }
@@ -55,13 +58,13 @@ func (dsp *KramerAFM20DSP) GetVolumes(ctx context.Context, blocks []string) (map
 func (dsp *KramerAFM20DSP) SetVolume(ctx context.Context, block string, level int) error {
 	volumeLevel := convertToDB(level)
 
-	// dsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
+	dsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
 
 	cmd := []byte(fmt.Sprintf("#X-AUD-LVL OUT.ANALOG_AUDIO.%s.AUDIO.1, %v\r", block, volumeLevel))
 
 	resp, err := dsp.SendCommand(ctx, cmd)
 	if err != nil {
-		logError(err.Error())
+		dsp.Log.Errorf("error sending command: %s", err.Error())
 		return fmt.Errorf("error sending command: %w", err)
 	}
 
@@ -70,7 +73,7 @@ func (dsp *KramerAFM20DSP) SetVolume(ctx context.Context, block string, level in
 		return fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
 
-	// dsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
+	dsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
 
 	return nil
 }
@@ -98,13 +101,14 @@ func convertBackToVolume(level int) int {
 // for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
 func (vsdsp *KramerVP558) GetVolumes(ctx context.Context, blocks []string) (map[string]int, error) {
 	toReturn := make(map[string]int)
-	// vsdsp.Log.Infof("sending get volume command", zap.String("block", block))
 
 	for _, block := range blocks {
+		vsdsp.Log.Infof("sending get volume command", zap.String("block", block))
+
 		cmd := []byte(fmt.Sprintf("#AUD-LVL? 1,%s\r\n", block))
 		resp, err := vsdsp.SendCommand(ctx, cmd, false)
 		if err != nil {
-			logError(err.Error())
+			vsdsp.Log.Errorf("error sending command: %s", err.Error())
 			return toReturn, fmt.Errorf("error sending command: %w", err)
 		}
 
@@ -126,7 +130,7 @@ func (vsdsp *KramerVP558) GetVolumes(ctx context.Context, blocks []string) (map[
 		}
 		toReturn[block] = volume
 
-		// vsdsp.Log.Infof("successfully got volume level", zap.String("block", block), zap.Int("level", volume))
+		vsdsp.Log.Infof("successfully got volume level", zap.String("block", block), zap.Int("level", volume))
 	}
 	return toReturn, nil
 }
@@ -137,13 +141,13 @@ func (vsdsp *KramerVP558) GetVolumes(ctx context.Context, blocks []string) (map[
 func (vsdsp *KramerVP558) SetVolume(ctx context.Context, block string, level int) error {
 	var cmd []byte
 
-	// vsdsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
+	vsdsp.Log.Infof("sending set volume command", zap.String("block", block), zap.Int("level", level))
 	cmd = []byte(fmt.Sprintf("#AUD-LVL 1,%s,%v\r", block, level))
 
 	//check to see if the mute status is going to be changing
 	currentVolume, err := vsdsp.GetVolumes(ctx, []string{block})
 	if err != nil {
-		logError(err.Error())
+		vsdsp.Log.Errorf("error sending command: %s", err.Error())
 		return fmt.Errorf("error sending command: %w", err)
 	}
 	//if there is a change, two responses will be sent and both need to be read
@@ -154,7 +158,7 @@ func (vsdsp *KramerVP558) SetVolume(ctx context.Context, block string, level int
 
 	resp, err := vsdsp.SendCommand(ctx, cmd, readAgain)
 	if err != nil {
-		logError(err.Error())
+		vsdsp.Log.Errorf("error sending command: %s", err.Error())
 		return fmt.Errorf("error sending command: %w", err)
 	}
 
@@ -162,7 +166,7 @@ func (vsdsp *KramerVP558) SetVolume(ctx context.Context, block string, level int
 	if strings.Contains(resps, "ERR") {
 		return fmt.Errorf("an error occured: (command: %s) response: %s)", cmd, resps)
 	}
-	// vsdsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
+	vsdsp.Log.Infof("successfully set volume", zap.String("block", block), zap.Int("level", level))
 
 	return nil
 }
