@@ -7,75 +7,30 @@ import (
 	"strings"
 
 	"github.com/byuoitav/common/status"
-	"github.com/fatih/color"
 )
 
-// GetInput returns the current input
 func (vs *Kramer4x4) GetAudioVideoInputs(ctx context.Context) (map[string]string, error) {
-	toReturn := make(map[string]string)
-
-	for x := 0; x < 4; x++ {
-		vs.Log.Debugf("Getting input for output port %d", x)
-		vs.Log.Debugf("Changing to 1-based indexing... (+1 to each port number)")
-
-		cmd := []byte(fmt.Sprintf("#VID? %d\r", x+1))
-		vs.Log.Debugf("Command: %s", cmd)
-		resp, err := vs.SendCommand(ctx, cmd)
-		if err != nil {
-			vs.Log.Errorf("error sending command: %s", err.Error())
-			return toReturn, fmt.Errorf("error sending command: %w", err)
-		}
-
-		resps := string(resp)
-		if !strings.Contains(resps, "VID") {
-			return toReturn, fmt.Errorf("Incorrect response for command (%s). (Response: %s)", cmd, resps)
-		}
-
-		parts := strings.Split(resps, "VID")
-		resps = strings.TrimSpace(parts[1])
-
-		parts = strings.Split(resps, ">")
-
-		var i status.Input
-		i.Input = parts[0]
-
-		vs.Log.Debugf("Changing to 0-based indexing... (-1 to each port number)")
-		i.Input, err = ToIndexZero(i.Input)
-		if err != nil {
-			return toReturn, fmt.Errorf("unable to switch to index zero: %w", err)
-		}
-
-		i.Input = fmt.Sprintf("%v:%v", i.Input, x)
-		color.Set(color.FgGreen, color.Bold)
-		vs.Log.Debugf("Input for output port %s is %v", i, i.Input)
-
-		toReturn[strconv.Itoa(x)] = i.Input
+	inputs := make(map[string]string)
+	cmd := []byte(fmt.Sprintf("#VID? *\n"))
+	resp, err := vs.SendCommand(ctx, cmd)
+	if err != nil {
+		return inputs, fmt.Errorf("error sending command: %w", err)
 	}
-	return toReturn, nil
+	split := strings.Split(string(resp), "VID")
+	if len(split) != 2 {
+		// TODO weird response
+		return nil, fmt.Errorf("WEIRD response: %v", split)
+	}
+	for _, str := range strings.Split(split[1], ",") {
+		split := strings.Split(strings.TrimSpace(str), ">")
+		if len(split) != 2 {
+			// TODO weird response
+			return nil, fmt.Errorf("WERID Response: %v", split)
+		}
+		inputs[split[0]] = split[1]
+	}
+	return inputs, nil
 }
-
-// func (vs *Kramer4x4) GetAudioVideoInputs(ctx context.Context) (map[string]string, error) {
-// 	inputs := make(map[string]string)
-// 	cmd := []byte(fmt.Sprintf("#VID? *\n"))
-// 	resp, err := vs.SendCommand(ctx, cmd)
-// 	if err != nil {
-// 		return inputs, fmt.Errorf("error sending command: %w", err)
-// 	}
-// 	split := strings.Split(string(resp), "VID")
-// 	if len(split) != 2 {
-// 		// TODO weird response
-// 		return nil, fmt.Errorf("WEIRD response: %v", split)
-// 	}
-// 	for _, str := range strings.Split(split[1], ",") {
-// 		split := strings.Split(strings.TrimSpace(str), ">")
-// 		if len(split) != 2 {
-// 			// TODO weird response
-// 			return nil, fmt.Errorf("WERID Response: %v", split)
-// 		}
-// 		inputs[split[0]] = split[1]
-// 	}
-// 	return inputs, nil
-// }
 
 // SwitchInput changes the input on the given output to input
 func (vs *Kramer4x4) SetAudioVideoInput(ctx context.Context, output, input string) error {
