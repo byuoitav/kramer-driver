@@ -150,7 +150,7 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 		return err
 	}
 
-	v.Infof("Logging in...")
+	v.Debugf("Logging in...")
 	v.Debugf("Username: %s", v.Username)
 
 	b, err := xml.Marshal(cmd)
@@ -178,7 +178,7 @@ func (v *Via) login(ctx context.Context, conn *net.TCPConn) error {
 	SuccessResp := SuccessRx.MatchString(s)
 
 	if respRx == true {
-		v.Infof("Response from device: %s", s)
+		v.Debugf("Response from device: %s", s)
 		err := fmt.Errorf("Unable to login due to an error: %s", s)
 		return err
 	}
