@@ -116,7 +116,7 @@ func (vsdsp *KramerVP558) SetMute(ctx context.Context, block string, muted bool)
 	vsdsp.Log.Infof("sending set muteStatus command", zap.String("block", block), zap.Bool("status", muted))
 
 	//cheack to see if the mute status is going to be changing
-	currentStatus, err := vsdsp.GetMutes(ctx, []string{block})
+	currentStatus, err := vsdsp.Mutes(ctx, []string{block})
 	if err != nil {
 		vsdsp.Log.Errorf("error sending command: %s", err.Error())
 		return fmt.Errorf("error sending command: %w", err)

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
-	"strconv"
+	//"strconv"
 	"time"
 )
 
@@ -43,7 +43,7 @@ func (v *Via) Volumes(ctx context.Context, block []string) (map[string]int, erro
 func (v *Via) SetVolume(ctx context.Context, block string, volume int) error {
 	_, err := v.SetViaVolume(ctx, volume)
 	if err != nil {
-		return v.Debugf("Failed to set volume for %v: %v", v.Address, err.Error())
+		return errors.New(fmt.Sprintf("Failed to set volume for %v: %v", v.Address, err.Error()))
 	}
 
 	return nil

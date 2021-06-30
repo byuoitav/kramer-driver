@@ -145,7 +145,7 @@ func (vsdsp *KramerVP558) SetVolume(ctx context.Context, block string, level int
 	cmd = []byte(fmt.Sprintf("#AUD-LVL 1,%s,%v\r", block, level))
 
 	//check to see if the mute status is going to be changing
-	currentVolume, err := vsdsp.GetVolumes(ctx, []string{block})
+	currentVolume, err := vsdsp.Volumes(ctx, []string{block})
 	if err != nil {
 		vsdsp.Log.Errorf("error sending command: %s", err.Error())
 		return fmt.Errorf("error sending command: %w", err)
