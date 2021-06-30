@@ -8,6 +8,23 @@ import (
 	"strings"
 )
 
+// Set the Volume for a VIA
+func (v *Via) SetViaVolume(ctx context.Context, volume int) (string, error) {
+	var cmd command
+	cmd.Command = "Vol"
+	cmd.Param1 = "Set"
+	cmd.Param2 = strconv.Itoa(volume)
+
+	v.Debugf("Sending volume set command to %s", v.Address)
+
+	resp, err := v.sendCommand(ctx, cmd)
+	if err != nil {
+		return "", v.Errorf("Error in setting volume on %s", v.Address)
+	}
+
+	return resp, nil
+}
+
 // Reboot: Reboot a VIA using the API
 func (v *Via) Reboot(ctx context.Context) error {
 	var cmd command

@@ -10,7 +10,7 @@ import (
 
 // GetMuted returns the Mute Status current input
 // The blocks are going to be a number between 1-20, determined by its configuration
-func (dsp *KramerAFM20DSP) GetMutes(ctx context.Context, blocks []string) (map[string]bool, error) {
+func (dsp *KramerAFM20DSP) Mutes(ctx context.Context, blocks []string) (map[string]bool, error) {
 
 	toReturn := make(map[string]bool)
 
@@ -73,7 +73,7 @@ func (dsp *KramerAFM20DSP) SetMute(ctx context.Context, block string, mute bool)
 // GetMuted returns the Mute Status current input
 // Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
 // for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
-func (vsdsp *KramerVP558) GetMutes(ctx context.Context, blocks []string) (map[string]bool, error) {
+func (vsdsp *KramerVP558) Mutes(ctx context.Context, blocks []string) (map[string]bool, error) {
 	toReturn := make(map[string]bool)
 
 	for _, block := range blocks {

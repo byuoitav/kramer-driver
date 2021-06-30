@@ -27,7 +27,7 @@ type Via struct {
 
 // These functions fulfill the DSP driver requirements
 // GetVolumes: opening a connection with the VIAs and then return the volume for the device
-func (v *Via) GetVolumes(ctx context.Context, block []string) (map[string]int, error) {
+func (v *Via) Volumes(ctx context.Context, block []string) (map[string]int, error) {
 	toReturn := make(map[string]int)
 	resp, err := v.GetVolume(ctx)
 	if err != nil {
@@ -41,20 +41,12 @@ func (v *Via) GetVolumes(ctx context.Context, block []string) (map[string]int, e
 
 // SetVolume: Connect and set the volume on the VIA
 func (v *Via) SetVolume(ctx context.Context, block string, volume int) error {
-	var cmd command
-	cmd.Command = "Vol"
-	cmd.Param1 = "Set"
-	cmd.Param2 = strconv.Itoa(volume)
-
-	v.Infof("Sending volume set command to %s", v.Address)
-
-	_, err := v.sendCommand(ctx, cmd)
+	_, err := v.SetViaVolume(ctx, volume)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error in setting volume on %s", v.Address))
+		return v.Debugf("Failed to set volume for %v: %v", v.Address, err.Error())
 	}
 
 	return nil
-
 }
 
 // GetInfo: needed by the DSP drivers implementation.  Will get hardware information
@@ -67,7 +59,6 @@ func (v *Via) GetInfo(ctx context.Context) (interface{}, error) {
 }
 
 // End of DSP Driver requirements
-
 func getConnection(address string) (*net.TCPConn, error) {
 	radder, err := net.ResolveTCPAddr("tcp", address+":9982")
 	if err != nil {

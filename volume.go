@@ -18,7 +18,7 @@ const (
 
 // GetVolume returns the volume Level for the given input
 // The blocks are going to be a number between 1-20, determined by its configuration
-func (dsp *KramerAFM20DSP) GetVolumes(ctx context.Context, blocks []string) (map[string]int, error) {
+func (dsp *KramerAFM20DSP) Volumes(ctx context.Context, blocks []string) (map[string]int, error) {
 	toReturn := make(map[string]int)
 
 	for _, block := range blocks {
@@ -99,7 +99,7 @@ func convertBackToVolume(level int) int {
 // GetVolume returns the volume Level for the given input
 // Audio inputs are formatted 0:0 - 4:2, and audio level is between 0-100.
 // for more information on Audio Inputs reference https://cdn.kramerav.com/web/downloads/manuals/vp-558_rev_4.pdf (pg. 64)
-func (vsdsp *KramerVP558) GetVolumes(ctx context.Context, blocks []string) (map[string]int, error) {
+func (vsdsp *KramerVP558) Volumes(ctx context.Context, blocks []string) (map[string]int, error) {
 	toReturn := make(map[string]int)
 
 	for _, block := range blocks {
